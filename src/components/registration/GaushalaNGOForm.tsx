@@ -107,17 +107,76 @@ const GaushalaNGOForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep3 = () => {
+    const newErrors: Record<string, string> = {};
+    // Only for Gaushala (not NGO)
+    if (!isNGO) {
+      if (!localData.landArea || localData.landArea.trim() === "")
+        newErrors.landArea = "Total Land Area is required";
+      if (
+        !localData.cowCapacity ||
+        localData.cowCapacity.toString().trim() === ""
+      )
+        newErrors.cowCapacity = "Total Cow Capacity is required";
+      if (
+        !localData.vehicleCount ||
+        localData.vehicleCount.toString().trim() === ""
+      )
+        newErrors.vehicleCount = "Number of 4W Vehicles is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep4 = () => {
+    const newErrors: Record<string, string> = {};
+    if (!isNGO) {
+      if (
+        !localData.nandiCount ||
+        localData.nandiCount.toString().trim() === ""
+      )
+        newErrors.nandiCount = "Nandi Count is required";
+      if (
+        !localData.milkingCowCount ||
+        localData.milkingCowCount.toString().trim() === ""
+      )
+        newErrors.milkingCowCount = "Milking Cow Count is required";
+      if (
+        !localData.nonMilkingCowCount ||
+        localData.nonMilkingCowCount.toString().trim() === ""
+      )
+        newErrors.nonMilkingCowCount = "Non-Milking Cow Count is required";
+      if (
+        !localData.maleCalfCount ||
+        localData.maleCalfCount.toString().trim() === ""
+      )
+        newErrors.maleCalfCount = "Male Calf Count is required";
+      if (
+        !localData.femaleCalfCount ||
+        localData.femaleCalfCount.toString().trim() === ""
+      )
+        newErrors.femaleCalfCount = "Female Calf Count is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
     console.log({ localData }, stepIndex);
-
     if (stepIndex === 0) {
       if (!validateStep1()) {
-        // Optionally, scroll to first error field
         return;
       }
     } else if (stepIndex === 1) {
       if (!validateStep2()) {
-        // Optionally, scroll to first error field
+        return;
+      }
+    } else if (stepIndex === 2) {
+      if (!validateStep3()) {
+        return;
+      }
+    } else if (stepIndex === 3) {
+      if (!validateStep4()) {
         return;
       }
     }
@@ -653,21 +712,33 @@ const GaushalaNGOForm = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Total Land Area (acres/Bigha)</Label>
+                    <Label>Total Land Area (acres/Bigha) *</Label>
                     <Input
                       placeholder="e.g. 5 acres"
                       value={localData.landArea || ""}
                       onChange={(e) => update({ landArea: e.target.value })}
+                      className={errors.landArea ? "border-red-500" : ""}
                     />
+                    {errors.landArea && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.landArea}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <Label>Total Cow Capacity</Label>
+                    <Label>Total Cow Capacity *</Label>
                     <Input
                       placeholder="Number"
                       type="number"
                       value={localData.cowCapacity || ""}
                       onChange={(e) => update({ cowCapacity: e.target.value })}
+                      className={errors.cowCapacity ? "border-red-500" : ""}
                     />
+                    {errors.cowCapacity && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.cowCapacity}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -677,13 +748,19 @@ const GaushalaNGOForm = () => {
                     <Label className="text-sm">In-House Hospital Setup</Label>
                   </div>
                   <div>
-                    <Label>Number of 4W Vehicles</Label>
+                    <Label>Number of 4W Vehicles *</Label>
                     <Input
                       placeholder="Number"
                       type="number"
                       value={localData.vehicleCount || ""}
                       onChange={(e) => update({ vehicleCount: e.target.value })}
+                      className={errors.vehicleCount ? "border-red-500" : ""}
                     />
+                    {errors.vehicleCount && (
+                      <div className="text-red-500 text-xs mt-1">
+                        {errors.vehicleCount}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -711,16 +788,22 @@ const GaushalaNGOForm = () => {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <Label>Nandi Count</Label>
+                  <Label>Nandi Count *</Label>
                   <Input
                     type="number"
                     placeholder="0"
                     value={localData.nandiCount || ""}
                     onChange={(e) => update({ nandiCount: e.target.value })}
+                    className={errors.nandiCount ? "border-red-500" : ""}
                   />
+                  {errors.nandiCount && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.nandiCount}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label>Milking Cow Count</Label>
+                  <Label>Milking Cow Count *</Label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -728,10 +811,16 @@ const GaushalaNGOForm = () => {
                     onChange={(e) =>
                       update({ milkingCowCount: e.target.value })
                     }
+                    className={errors.milkingCowCount ? "border-red-500" : ""}
                   />
+                  {errors.milkingCowCount && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.milkingCowCount}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label>Non-Milking Cow Count</Label>
+                  <Label>Non-Milking Cow Count *</Label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -739,19 +828,33 @@ const GaushalaNGOForm = () => {
                     onChange={(e) =>
                       update({ nonMilkingCowCount: e.target.value })
                     }
+                    className={
+                      errors.nonMilkingCowCount ? "border-red-500" : ""
+                    }
                   />
+                  {errors.nonMilkingCowCount && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.nonMilkingCowCount}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label>Male Calf Count</Label>
+                  <Label>Male Calf Count *</Label>
                   <Input
                     type="number"
                     placeholder="0"
                     value={localData.maleCalfCount || ""}
                     onChange={(e) => update({ maleCalfCount: e.target.value })}
+                    className={errors.maleCalfCount ? "border-red-500" : ""}
                   />
+                  {errors.maleCalfCount && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.maleCalfCount}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label>Female Calf Count</Label>
+                  <Label>Female Calf Count *</Label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -759,7 +862,13 @@ const GaushalaNGOForm = () => {
                     onChange={(e) =>
                       update({ femaleCalfCount: e.target.value })
                     }
+                    className={errors.femaleCalfCount ? "border-red-500" : ""}
                   />
+                  {errors.femaleCalfCount && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.femaleCalfCount}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="mt-6">
