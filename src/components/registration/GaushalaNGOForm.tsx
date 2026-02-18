@@ -92,10 +92,31 @@ const GaushalaNGOForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep2 = () => {
+    console.log("Validate 2 called", localData?.pan);
+
+    const newErrors: Record<string, string> = {};
+    if (
+      !localData.pan ||
+      localData.pan.trim() === "" ||
+      localData.pan?.length !== 10
+    )
+      newErrors.pan = "Valid PAN number is required";
+    // Add more validations for document uploads if needed
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
+    console.log({ localData }, stepIndex);
+
     if (stepIndex === 0) {
-      console.log({ localData });
       if (!validateStep1()) {
+        // Optionally, scroll to first error field
+        return;
+      }
+    } else if (stepIndex === 1) {
+      if (!validateStep2()) {
         // Optionally, scroll to first error field
         return;
       }
@@ -535,8 +556,16 @@ const GaushalaNGOForm = () => {
                   <Input
                     placeholder="ABCDE1234F"
                     value={localData.pan || ""}
-                    onChange={(e) => update({ pan: e.target.value })}
+                    onChange={(e) =>
+                      update({ pan: e.target.value.toUpperCase() })
+                    }
+                    className={errors.pan ? "border-red-500" : ""}
                   />
+                  {errors.pan && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {errors.pan}
+                    </div>
+                  )}
                 </div>
                 {isNGO && (
                   <div>
