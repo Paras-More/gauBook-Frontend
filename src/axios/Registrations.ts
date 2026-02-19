@@ -18,3 +18,13 @@ export const registerNgo = async (formData: {}) => {
     throw error;
   }
 };
+
+export const registerUser = async (formData: {}) => {
+  try {
+    const response = await API.post("/user/register", formData);
+    return response.data;
+  } catch (error) {
+    console.error("Error registering User:", error);
+    throw error;
+  }
+};

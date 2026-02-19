@@ -15,8 +15,9 @@ import {
 import { useRegistrationStore, roleLabels } from "@/stores/registrationStore";
 import FormStepIndicator from "./FormStepIndicator";
 import SocialMediaFields from "./SocialMediaFields";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { registerUser } from "@/axios/Registrations";
 
 const steps = ["Basic Info", "Preferences", "Skills & Social", "Review"];
 
@@ -38,18 +39,44 @@ const volunteeringActivities = [
 const VolunteerDonorInfluencerForm = () => {
   const {
     selectedRole,
+    selectedRoles,
     formData,
     updateFormData,
     currentStep,
     setCurrentStep,
     resetForm,
+    toggleRole,
+    profilePhoto,
+    setProfilePhoto,
   } = useRegistrationStore();
   const [localData, setLocalData] = useState<Record<string, any>>(formData);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const stepIndex = currentStep - 1;
   const roleName = roleLabels[selectedRole!];
 
   const update = (data: Record<string, any>) => {
     setLocalData((prev) => ({ ...prev, ...data }));
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Photo size must be less than 5MB");
+        return;
+      }
+      setProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setProfilePhoto(null);
+    setPhotoPreview(null);
   };
 
   const handleNext = () => {
@@ -62,14 +89,51 @@ const VolunteerDonorInfluencerForm = () => {
     else setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     updateFormData(localData);
+
+    const formDataToSend = new FormData();
+
+    // Append form data
+    formDataToSend.append("fullName", localData.fullName || "");
+    formDataToSend.append("mobile", localData.mobile || "");
+    formDataToSend.append("email", localData.email || "");
+    formDataToSend.append("city", localData.city || "");
+    formDataToSend.append("district", localData.district || "");
+    formDataToSend.append("state", localData.state || "");
+    formDataToSend.append("age", localData.age || "");
+    formDataToSend.append("gender", localData.gender || "");
+    formDataToSend.append("experience", localData.experience || "");
+    formDataToSend.append("gaushalasKnown", localData.gaushalasKnown || "");
+    formDataToSend.append(
+      "activities",
+      JSON.stringify(localData.activities || []),
+    );
+    formDataToSend.append("animalCareExp", localData.animalCareExp || "");
+    formDataToSend.append("vetSkills", localData.vetSkills || "");
+    formDataToSend.append("hasTransport", localData.hasTransport || false);
+    formDataToSend.append("bio", localData.bio || "");
+    formDataToSend.append("roles", JSON.stringify(selectedRoles));
+
+    // Append profile photo if exists
+    if (profilePhoto) {
+      formDataToSend.append("profilePhoto", profilePhoto);
+    }
+
     toast.success(`${roleName} registration submitted successfully! 🎉`);
     console.log("Registration data:", {
       ...formData,
       ...localData,
       role: selectedRole,
+      selectedRoles: selectedRoles,
+      profilePhoto: profilePhoto?.name,
     });
+    try {
+      const result = await registerUser(formDataToSend);
+      console.log("API response:", result);
+    } catch (e) {
+      toast.error("Failed to submit registration. Please try again.");
+    }
   };
 
   const toggleActivity = (activity: string) => {
@@ -79,6 +143,7 @@ const VolunteerDonorInfluencerForm = () => {
       : [...current, activity];
     update({ activities: updated });
   };
+  console.log("selectedRole", selectedRole);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -94,6 +159,12 @@ const VolunteerDonorInfluencerForm = () => {
                 ? "Register as an influencer to promote Gau Seva"
                 : "Register as a volunteer to support Gaushalas"}
           </p>
+          {selectedRoles.length > 0 && (
+            <p className="text-xs text-accent mt-2">
+              Selected roles:{" "}
+              {selectedRoles.map((r) => roleLabels[r]).join(", ")}
+            </p>
+          )}
         </div>
         <FormStepIndicator steps={steps} currentStep={stepIndex} />
 
@@ -108,6 +179,73 @@ const VolunteerDonorInfluencerForm = () => {
               <h3 className="text-lg font-heading font-semibold text-foreground border-b border-border pb-2">
                 Basic Information
               </h3>
+
+              {/* Additional Roles Selection */}
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <Label className="text-sm font-semibold mb-3 block">
+                  Additional Roles (Select multiple if interested)
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {["volunteer", "donor", "influencer"].map((role) => (
+                    <div
+                      key={role}
+                      onClick={() => toggleRole(role as any)}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-2 ${
+                        selectedRole?.toLowerCase() === role ||
+                        selectedRoles.includes(role as any)
+                          ? "border-accent bg-accent/10"
+                          : "border-gray-300 hover:border-accent/50"
+                      }`}
+                    >
+                      <Checkbox
+                        checked={
+                          selectedRole?.toLowerCase() === role ||
+                          selectedRoles.includes(role as any)
+                        }
+                        onCheckedChange={() => toggleRole(role as any)}
+                        className="cursor-pointer"
+                      />
+                      <Label className="text-sm font-medium cursor-pointer capitalize">
+                        {roleLabels[role as any]}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profile Photo Upload */}
+              <div>
+                <Label>Profile Photo</Label>
+                <div className="flex gap-4 items-start">
+                  {photoPreview && (
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={removePhoto}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="cursor-pointer"
+                      onChange={handlePhotoChange}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Max 5MB. Formats: JPG, PNG, GIF
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Full Name *</Label>
@@ -208,14 +346,6 @@ const VolunteerDonorInfluencerForm = () => {
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label>Profile Photo</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="cursor-pointer"
-                  />
                 </div>
                 <div>
                   <Label>Experience Level</Label>
@@ -418,6 +548,20 @@ const VolunteerDonorInfluencerForm = () => {
                   Review your information before submitting.
                 </p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
+                  {selectedRoles.length > 0 && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Roles:</span>{" "}
+                      <span className="font-medium">
+                        {selectedRoles.map((r) => roleLabels[r]).join(", ")}
+                      </span>
+                    </div>
+                  )}
+                  {photoPreview && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Photo:</span>{" "}
+                      <span className="font-medium">✓ Uploaded</span>
+                    </div>
+                  )}
                   {localData.fullName && (
                     <div>
                       <span className="text-muted-foreground">Name:</span>{" "}

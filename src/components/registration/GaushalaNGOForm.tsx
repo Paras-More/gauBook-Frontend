@@ -17,7 +17,7 @@ import FormStepIndicator from "./FormStepIndicator";
 import SocialMediaFields from "./SocialMediaFields";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
-import { registerGaushala, registerNgo } from "@/axios/gaushalaRegistration";
+import { registerGaushala, registerNgo } from "@/axios/Registrations";
 
 const gaushalaNgoSteps = [
   "Basic Info",
