@@ -17,7 +17,7 @@ import FormStepIndicator from "./FormStepIndicator";
 import SocialMediaFields from "./SocialMediaFields";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
-import { registerGaushala } from "@/axios/gaushalaRegistration";
+import { registerGaushala, registerNgo } from "@/axios/gaushalaRegistration";
 
 const gaushalaNgoSteps = [
   "Basic Info",
@@ -37,6 +37,13 @@ const GaushalaNGOForm = () => {
     resetForm,
   } = useRegistrationStore();
   const [localData, setLocalData] = useState<Record<string, any>>(formData);
+  // File state: store selected files for each field
+  const [fileState, setFileState] = useState<{
+    registrationCertificate?: File | null;
+    certificate80G?: File | null;
+    profilePhotos?: File[];
+    gaushalaMedia?: File[];
+  }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isNGO = selectedRole === "ngo";
   const steps = isNGO
@@ -47,6 +54,22 @@ const GaushalaNGOForm = () => {
 
   const update = (data: Record<string, any>) => {
     setLocalData((prev) => ({ ...prev, ...data }));
+  };
+
+  // File input change handler
+  const handleFileChange = (
+    field: string,
+    files: FileList | null,
+    multiple = false,
+  ) => {
+    setFileState((prev) => {
+      if (!files) return prev;
+      if (multiple) {
+        return { ...prev, [field]: Array.from(files) };
+      } else {
+        return { ...prev, [field]: files[0] || null };
+      }
+    });
   };
 
   // Validation for required fields on first step
@@ -75,19 +98,22 @@ const GaushalaNGOForm = () => {
       newErrors.district = "District is required";
 
     // Add more validations as needed
-    // Only validate these fields for non-NGO (Gaushala) forms
-    // if (!isNGO) { // This validation need to check
-    if (!localData.capacity || localData.capacity.toString().trim() === "")
-      newErrors.capacity = "Gaushala capacity is required";
-    if (!localData.staffCount || localData.staffCount.toString().trim() === "")
-      newErrors.staffCount = "Permanent staff count is required";
-    if (
-      !localData.adoptionCharges ||
-      localData.adoptionCharges.toString().trim() === ""
-    )
-      newErrors.adoptionCharges =
-        "Charges for adopting milking cow are required";
-    // }
+    // Only validate these fields for non-NGO  i.e(Gaushala) forms
+    if (!isNGO) {
+      if (!localData.capacity || localData.capacity.toString().trim() === "")
+        newErrors.capacity = "Gaushala capacity is required";
+      if (
+        !localData.staffCount ||
+        localData.staffCount.toString().trim() === ""
+      )
+        newErrors.staffCount = "Permanent staff count is required";
+      if (
+        !localData.adoptionCharges ||
+        localData.adoptionCharges.toString().trim() === ""
+      )
+        newErrors.adoptionCharges =
+          "Charges for adopting milking cow are required";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -162,7 +188,6 @@ const GaushalaNGOForm = () => {
   };
 
   const handleNext = () => {
-    console.log({ localData }, stepIndex);
     if (stepIndex === 0) {
       if (!validateStep1()) {
         return;
@@ -196,16 +221,135 @@ const GaushalaNGOForm = () => {
 
   const handleSubmit = async () => {
     updateFormData(localData);
-    const result = await registerGaushala(localData);
-    console.log("result", result);
-    toast.success(
-      `${roleLabels[selectedRole!]} registration submitted successfully! 🎉`,
-    );
-    console.log("Registration data:", {
-      ...formData,
-      ...localData,
-      role: selectedRole,
+    // Prepare FormData
+    const formDataToSend = new FormData();
+
+    // Transform localData to new payload format
+    const {
+      enabledPlatforms = [],
+      youtubeId,
+      youtubeSubscribers,
+      youtubeVerified,
+      instagramId,
+      instagramSubscribers,
+      instagramVerified,
+      facebookId,
+      facebookSubscribers,
+      facebookVerified,
+      twitterId,
+      twitterSubscribers,
+      twitterVerified,
+      whatsappChannelId,
+      whatsappChannelSubscribers,
+      whatsappChannelVerified,
+      ...rest
+    } = localData;
+
+    // Build socialMedia array
+    const platformMap = {
+      youtube: {
+        platform: "Youtube",
+        id: youtubeId,
+        subscribers: youtubeSubscribers,
+        verified: youtubeVerified,
+      },
+      instagram: {
+        platform: "Instagram",
+        id: instagramId,
+        subscribers: instagramSubscribers,
+        verified: instagramVerified,
+      },
+      facebook: {
+        platform: "FaceBook",
+        id: facebookId,
+        subscribers: facebookSubscribers,
+        verified: facebookVerified,
+      },
+      twitter: {
+        platform: "X",
+        id: twitterId,
+        subscribers: twitterSubscribers,
+        verified: twitterVerified,
+      },
+      whatsappChannel: {
+        platform: "WhatsApp",
+        id: whatsappChannelId,
+        subscribers: whatsappChannelSubscribers,
+        verified: whatsappChannelVerified,
+      },
+    };
+    const socialMedia = enabledPlatforms
+      .map((key: string | number) => {
+        const p = platformMap[key];
+        if (!p || !p.id) return null;
+        return {
+          platform: p.platform,
+          platformId: p.id,
+          subscriberCount: p.subscribers ? Number(p.subscribers) : 0,
+          isVerified: !!p.verified,
+        };
+      })
+      .filter(Boolean);
+
+    // Compose final payload: append each field individually for backend compatibility
+    const payloadFields = {
+      ...rest,
+      verificationStatus: "pending",
+    };
+    // Append all non-file fields
+    Object.entries(payloadFields).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formDataToSend.append(key, value);
+      }
     });
+    // Append socialMedia as JSON string (array)
+    formDataToSend.append("socialMedia", JSON.stringify(socialMedia));
+
+    // Attach files from fileState
+    if (fileState.registrationCertificate) {
+      formDataToSend.append(
+        "registrationCertificate",
+        fileState.registrationCertificate,
+      );
+    }
+    if (isNGO && fileState.certificate80G) {
+      formDataToSend.append("certificate80G", fileState.certificate80G);
+    }
+    if (fileState.profilePhotos && fileState.profilePhotos.length > 0) {
+      fileState.profilePhotos.forEach((file) => {
+        formDataToSend.append("profilePhotos", file);
+      });
+    }
+    if (
+      !isNGO &&
+      fileState.gaushalaMedia &&
+      fileState.gaushalaMedia.length > 0
+    ) {
+      fileState.gaushalaMedia.forEach((file) => {
+        formDataToSend.append("gaushalaMedia", file);
+      });
+    }
+
+    try {
+      console.log(formDataToSend);
+
+      if (!isNGO) {
+        await registerGaushala(formDataToSend);
+      } else {
+        await registerNgo(formDataToSend);
+      }
+      toast.success(
+        `${roleLabels[selectedRole!]} registration submitted successfully! 🎉`,
+      );
+    } catch (error: any) {
+      let message = "Registration failed. Please try again.";
+      if (error?.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error?.message) {
+        message = error.message;
+      }
+      toast.error(message);
+    }
   };
 
   const indianStates = [
@@ -605,7 +749,19 @@ const GaushalaNGOForm = () => {
                     type="file"
                     accept=".pdf,.jpg,.png"
                     className="cursor-pointer"
+                    onChange={(e) =>
+                      handleFileChange(
+                        "registrationCertificate",
+                        e.target.files,
+                        true,
+                      )
+                    }
                   />
+                  {fileState.registrationCertificate && (
+                    <div className="text-xs text-green-700 mt-1">
+                      Selected: {fileState.registrationCertificate.name}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">
                     Upload PDF, JPG or PNG (max 10MB)
                   </p>
@@ -633,7 +789,15 @@ const GaushalaNGOForm = () => {
                       type="file"
                       accept=".pdf,.jpg,.png"
                       className="cursor-pointer"
+                      onChange={(e) =>
+                        handleFileChange("certificate80G", e.target.files)
+                      }
                     />
+                    {fileState.certificate80G && (
+                      <div className="text-xs text-green-700 mt-1">
+                        Selected: {fileState.certificate80G.name}
+                      </div>
+                    )}
                   </div>
                 )}
                 {!isNGO && (
@@ -673,7 +837,23 @@ const GaushalaNGOForm = () => {
                         accept="image/*"
                         multiple
                         className="cursor-pointer"
+                        onChange={(e) =>
+                          handleFileChange(
+                            "profilePhotos",
+                            e.target.files,
+                            true,
+                          )
+                        }
                       />
+                      {fileState.profilePhotos &&
+                        fileState.profilePhotos.length > 0 && (
+                          <div className="text-xs text-green-700 mt-1">
+                            Selected:{" "}
+                            {fileState.profilePhotos
+                              .map((f) => f.name)
+                              .join(", ")}
+                          </div>
+                        )}
                     </div>
                   </>
                 )}
@@ -702,7 +882,19 @@ const GaushalaNGOForm = () => {
                       accept="image/*"
                       multiple
                       className="cursor-pointer"
+                      onChange={(e) =>
+                        handleFileChange("profilePhotos", e.target.files, true)
+                      }
                     />
+                    {fileState.profilePhotos &&
+                      fileState.profilePhotos.length > 0 && (
+                        <div className="text-xs text-green-700 mt-1">
+                          Selected:{" "}
+                          {fileState.profilePhotos
+                            .map((f) => f.name)
+                            .join(", ")}
+                        </div>
+                      )}
                   </div>
                   <p className="text-sm text-muted-foreground p-4 bg-secondary rounded-lg">
                     After approval, you can associate with Gaushalas, create
@@ -882,7 +1074,17 @@ const GaushalaNGOForm = () => {
                   accept="image/*,video/*"
                   multiple
                   className="cursor-pointer"
+                  onChange={(e) =>
+                    handleFileChange("gaushalaMedia", e.target.files, true)
+                  }
                 />
+                {fileState.gaushalaMedia &&
+                  fileState.gaushalaMedia.length > 0 && (
+                    <div className="text-xs text-green-700 mt-1">
+                      Selected:{" "}
+                      {fileState.gaushalaMedia.map((f) => f.name).join(", ")}
+                    </div>
+                  )}
               </div>
             </motion.div>
           )}

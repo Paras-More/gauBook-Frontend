@@ -4,9 +4,7 @@ import Cookies from "js-cookie";
 const API = axios.create({
   baseURL: "http://localhost:5000",
   withCredentials: true, // Include cookies in requests
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // No default Content-Type header; set per request or let axios handle it
 });
 
 // Request interceptor: add token and future logic
