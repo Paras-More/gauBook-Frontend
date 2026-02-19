@@ -757,11 +757,21 @@ const GaushalaNGOForm = () => {
                       )
                     }
                   />
-                  {fileState.registrationCertificate && (
+                  {fileState.registrationCertificate &&
+                  Array.isArray(fileState.registrationCertificate) &&
+                  fileState.registrationCertificate.length > 0 ? (
+                    <div className="text-xs text-green-700 mt-1">
+                      Selected:{" "}
+                      {fileState.registrationCertificate
+                        .map((f) => f.name)
+                        .join(", ")}
+                    </div>
+                  ) : fileState.registrationCertificate &&
+                    !Array.isArray(fileState.registrationCertificate) ? (
                     <div className="text-xs text-green-700 mt-1">
                       Selected: {fileState.registrationCertificate.name}
                     </div>
-                  )}
+                  ) : null}
                   <p className="text-xs text-muted-foreground mt-1">
                     Upload PDF, JPG or PNG (max 10MB)
                   </p>
@@ -790,14 +800,22 @@ const GaushalaNGOForm = () => {
                       accept=".pdf,.jpg,.png"
                       className="cursor-pointer"
                       onChange={(e) =>
-                        handleFileChange("certificate80G", e.target.files)
+                        handleFileChange("certificate80G", e.target.files, true)
                       }
                     />
-                    {fileState.certificate80G && (
+                    {fileState.certificate80G &&
+                    Array.isArray(fileState.certificate80G) &&
+                    fileState.certificate80G.length > 0 ? (
+                      <div className="text-xs text-green-700 mt-1">
+                        Selected:{" "}
+                        {fileState.certificate80G.map((f) => f.name).join(", ")}
+                      </div>
+                    ) : fileState.certificate80G &&
+                      !Array.isArray(fileState.certificate80G) ? (
                       <div className="text-xs text-green-700 mt-1">
                         Selected: {fileState.certificate80G.name}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
                 {!isNGO && (
