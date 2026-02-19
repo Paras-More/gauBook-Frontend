@@ -753,7 +753,6 @@ const GaushalaNGOForm = () => {
                       handleFileChange(
                         "registrationCertificate",
                         e.target.files,
-                        true,
                       )
                     }
                   />
@@ -800,7 +799,7 @@ const GaushalaNGOForm = () => {
                       accept=".pdf,.jpg,.png"
                       className="cursor-pointer"
                       onChange={(e) =>
-                        handleFileChange("certificate80G", e.target.files, true)
+                        handleFileChange("certificate80G", e.target.files)
                       }
                     />
                     {fileState.certificate80G &&
