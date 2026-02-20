@@ -19,12 +19,23 @@ export const registerNgo = async (formData: {}) => {
   }
 };
 
+// The below registration functions are for both User and Vendor, as they share the same endpoint structure.
 export const registerUser = async (formData: {}) => {
   try {
     const response = await API.post("/user/register", formData);
     return response.data;
   } catch (error) {
     console.error("Error registering User:", error);
+    throw error;
+  }
+};
+
+export const registerVendor = async (formData: {}) => {
+  try {
+    const response = await API.post("/vendor/register", formData);
+    return response.data;
+  } catch (error) {
+    console.error("Error registering Vendor:", error);
     throw error;
   }
 };
