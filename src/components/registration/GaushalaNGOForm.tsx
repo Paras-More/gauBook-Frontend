@@ -15,6 +15,7 @@ import {
 import { useRegistrationStore, roleLabels } from "@/stores/registrationStore";
 import FormStepIndicator from "./FormStepIndicator";
 import SocialMediaFields from "./SocialMediaFields";
+import NumericInput from "./NumericInput";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { registerGaushala, registerNgo } from "@/axios/Registrations";
@@ -414,9 +415,13 @@ const GaushalaNGOForm = () => {
                 <div>
                   <Label>{isNGO ? "NGO Name" : "Gaushala Name"} *</Label>
                   <Input
+                    type="text"
                     placeholder="As per registration documents"
                     value={localData.name || ""}
-                    onChange={(e) => update({ name: e.target.value })}
+                    onChange={(e) => {
+                      const textOnly = e.target.value.replace(/[0-9]/g, "");
+                      update({ name: textOnly });
+                    }}
                     className={errors.name ? "border-red-500" : ""}
                   />
                   {errors.name && (
@@ -429,11 +434,38 @@ const GaushalaNGOForm = () => {
                   <Label>Year of Establishment *</Label>
                   <Input
                     placeholder="e.g. 2005"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={localData.yearEstablished || ""}
-                    onChange={(e) =>
-                      update({ yearEstablished: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 4) {
+                        update({ yearEstablished: value });
+                        // Validate year if provided
+                        if (value.length === 4) {
+                          const year = parseInt(value, 10);
+                          const currentYear = new Date().getFullYear();
+                          if (year < 1800 || year > currentYear) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              yearEstablished: "Please add a valid year",
+                            }));
+                          } else {
+                            setErrors((prev) => {
+                              const newErrors = { ...prev };
+                              delete newErrors.yearEstablished;
+                              return newErrors;
+                            });
+                          }
+                        } else if (value.length === 0) {
+                          setErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.yearEstablished;
+                            return newErrors;
+                          });
+                        }
+                      }
+                    }}
                     className={errors.yearEstablished ? "border-red-500" : ""}
                   />
                   {errors.yearEstablished && (
@@ -488,8 +520,12 @@ const GaushalaNGOForm = () => {
                   <Label>Contact Person Name *</Label>
                   <Input
                     placeholder="Full name"
+                    type="text"
                     value={localData.contactPerson || ""}
-                    onChange={(e) => update({ contactPerson: e.target.value })}
+                    onChange={(e) => {
+                      const textOnly = e.target.value.replace(/[0-9]/g, "");
+                      update({ contactPerson: textOnly });
+                    }}
                     className={errors.contactPerson ? "border-red-500" : ""}
                   />
                   {errors.contactPerson && (
@@ -502,16 +538,50 @@ const GaushalaNGOForm = () => {
                   <Label>Designation</Label>
                   <Input
                     placeholder="e.g. Manager, Trustee"
+                    type="text"
                     value={localData.designation || ""}
-                    onChange={(e) => update({ designation: e.target.value })}
+                    onChange={(e) => {
+                      const textOnly = e.target.value.replace(/[0-9]/g, "");
+                      update({ designation: textOnly });
+                    }}
                   />
                 </div>
                 <div>
                   <Label>Mobile Number (OTP verified) *</Label>
                   <Input
                     placeholder="+91 XXXXX XXXXX"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={localData.mobile || ""}
-                    onChange={(e) => update({ mobile: e.target.value })}
+                    onChange={(e) => {
+                      const numbersOnly = e.target.value.replace(/\D/g, "");
+                      if (numbersOnly.length <= 10) {
+                        update({ mobile: numbersOnly });
+                        // Validate mobile if 10 digits provided
+                        if (numbersOnly.length === 10) {
+                          setErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.mobile;
+                            return newErrors;
+                          });
+                        } else if (
+                          numbersOnly.length > 0 &&
+                          numbersOnly.length < 10
+                        ) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            mobile: "Mobile number must be exactly 10 digits",
+                          }));
+                        } else if (numbersOnly.length === 0) {
+                          setErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.mobile;
+                            return newErrors;
+                          });
+                        }
+                      }
+                    }}
                     className={errors.mobile ? "border-red-500" : ""}
                   />
                   {errors.mobile && (
@@ -600,64 +670,84 @@ const GaushalaNGOForm = () => {
                       <Label>Alternate Mobile 1</Label>
                       <Input
                         placeholder="Alternate number"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
                         value={localData.altMobile1 || ""}
-                        onChange={(e) => update({ altMobile1: e.target.value })}
+                        onChange={(e) => {
+                          const numbersOnly = e.target.value.replace(/\D/g, "");
+                          if (numbersOnly.length <= 10) {
+                            update({ altMobile1: numbersOnly });
+                          }
+                        }}
                       />
                     </div>
                     <div>
                       <Label>Alternate Mobile 2</Label>
                       <Input
                         placeholder="Alternate number"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
                         value={localData.altMobile2 || ""}
-                        onChange={(e) => update({ altMobile2: e.target.value })}
+                        onChange={(e) => {
+                          const numbersOnly = e.target.value.replace(/\D/g, "");
+                          if (numbersOnly.length <= 10) {
+                            update({ altMobile2: numbersOnly });
+                          }
+                        }}
                       />
                     </div>
                     <div>
                       <Label>WhatsApp Number 1</Label>
                       <Input
                         placeholder="WhatsApp number"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
                         value={localData.whatsapp1 || ""}
-                        onChange={(e) => update({ whatsapp1: e.target.value })}
+                        onChange={(e) => {
+                          const numbersOnly = e.target.value.replace(/\D/g, "");
+                          if (numbersOnly.length <= 10) {
+                            update({ whatsapp1: numbersOnly });
+                          }
+                        }}
                       />
                     </div>
                     <div>
                       <Label>WhatsApp Number 2</Label>
                       <Input
                         placeholder="WhatsApp number"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
                         value={localData.whatsapp2 || ""}
-                        onChange={(e) => update({ whatsapp2: e.target.value })}
+                        onChange={(e) => {
+                          const numbersOnly = e.target.value.replace(/\D/g, "");
+                          if (numbersOnly.length <= 10) {
+                            update({ whatsapp2: numbersOnly });
+                          }
+                        }}
                       />
                     </div>
-                    <div>
-                      <Label>Gaushala Capacity *</Label>
-                      <Input
-                        placeholder="Number of Gau that can be accommodated"
-                        type="number"
-                        value={localData.capacity || ""}
-                        onChange={(e) => update({ capacity: e.target.value })}
-                        className={errors.capacity ? "border-red-500" : ""}
-                      />
-                      {errors.capacity && (
-                        <div className="text-red-500 text-xs mt-1">
-                          {errors.capacity}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <Label>Permanent Staff Count *</Label>
-                      <Input
-                        placeholder="Number"
-                        type="number"
-                        value={localData.staffCount || ""}
-                        onChange={(e) => update({ staffCount: e.target.value })}
-                        className={errors.staffCount ? "border-red-500" : ""}
-                      />
-                      {errors.staffCount && (
-                        <div className="text-red-500 text-xs mt-1">
-                          {errors.staffCount}
-                        </div>
-                      )}
-                    </div>
+                    <NumericInput
+                      label="Gaushala Capacity"
+                      placeholder="Number of Gau that can be accommodated"
+                      value={localData.capacity}
+                      onChange={(val) => update({ capacity: val })}
+                      error={errors.capacity}
+                      required
+                      step="1"
+                    />
+                    <NumericInput
+                      label="Permanent Staff Count"
+                      placeholder="Number"
+                      value={localData.staffCount}
+                      onChange={(val) => update({ staffCount: val })}
+                      error={errors.staffCount}
+                      required
+                      step="1"
+                    />
                     <div className="flex items-center gap-2">
                       <Checkbox
                         checked={localData.hasTemple || false}
@@ -665,24 +755,15 @@ const GaushalaNGOForm = () => {
                       />
                       <Label className="text-sm">Gaushala with Temple</Label>
                     </div>
-                    <div>
-                      <Label>Charges for Adopting Milking Cow *</Label>
-                      <Input
-                        placeholder="Amount in ₹"
-                        value={localData.adoptionCharges || ""}
-                        onChange={(e) =>
-                          update({ adoptionCharges: e.target.value })
-                        }
-                        className={
-                          errors.adoptionCharges ? "border-red-500" : ""
-                        }
-                      />
-                      {errors.adoptionCharges && (
-                        <div className="text-red-500 text-xs mt-1">
-                          {errors.adoptionCharges}
-                        </div>
-                      )}
-                    </div>
+                    <NumericInput
+                      label="Charges for Adopting Milking Cow"
+                      placeholder="Amount in ₹"
+                      value={localData.adoptionCharges}
+                      onChange={(val) => update({ adoptionCharges: val })}
+                      error={errors.adoptionCharges}
+                      required
+                      step="0.01"
+                    />
                   </>
                 )}
               </div>
@@ -757,16 +838,7 @@ const GaushalaNGOForm = () => {
                     }
                   />
                   {fileState.registrationCertificate &&
-                  Array.isArray(fileState.registrationCertificate) &&
-                  fileState.registrationCertificate.length > 0 ? (
-                    <div className="text-xs text-green-700 mt-1">
-                      Selected:{" "}
-                      {fileState.registrationCertificate
-                        .map((f) => f.name)
-                        .join(", ")}
-                    </div>
-                  ) : fileState.registrationCertificate &&
-                    !Array.isArray(fileState.registrationCertificate) ? (
+                  !Array.isArray(fileState.registrationCertificate) ? (
                     <div className="text-xs text-green-700 mt-1">
                       Selected: {fileState.registrationCertificate.name}
                     </div>
@@ -779,10 +851,17 @@ const GaushalaNGOForm = () => {
                   <Label>PAN Number *</Label>
                   <Input
                     placeholder="ABCDE1234F"
+                    maxLength={10}
                     value={localData.pan || ""}
-                    onChange={(e) =>
-                      update({ pan: e.target.value.toUpperCase() })
-                    }
+                    onChange={(e) => {
+                      const alphanumeric = e.target.value.replace(
+                        /[^a-zA-Z0-9]/g,
+                        "",
+                      );
+                      if (alphanumeric.length <= 10) {
+                        update({ pan: alphanumeric.toUpperCase() });
+                      }
+                    }}
                     className={errors.pan ? "border-red-500" : ""}
                   />
                   {errors.pan && (
@@ -934,21 +1013,15 @@ const GaushalaNGOForm = () => {
                       </div>
                     )}
                   </div>
-                  <div>
-                    <Label>Total Cow Capacity *</Label>
-                    <Input
-                      placeholder="Number"
-                      type="number"
-                      value={localData.cowCapacity || ""}
-                      onChange={(e) => update({ cowCapacity: e.target.value })}
-                      className={errors.cowCapacity ? "border-red-500" : ""}
-                    />
-                    {errors.cowCapacity && (
-                      <div className="text-red-500 text-xs mt-1">
-                        {errors.cowCapacity}
-                      </div>
-                    )}
-                  </div>
+                  <NumericInput
+                    label="Total Cow Capacity"
+                    placeholder="Number"
+                    value={localData.cowCapacity}
+                    onChange={(val) => update({ cowCapacity: val })}
+                    error={errors.cowCapacity}
+                    required
+                    step="1"
+                  />
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={localData.hasHospital || false}
@@ -956,21 +1029,15 @@ const GaushalaNGOForm = () => {
                     />
                     <Label className="text-sm">In-House Hospital Setup</Label>
                   </div>
-                  <div>
-                    <Label>Number of 4W Vehicles *</Label>
-                    <Input
-                      placeholder="Number"
-                      type="number"
-                      value={localData.vehicleCount || ""}
-                      onChange={(e) => update({ vehicleCount: e.target.value })}
-                      className={errors.vehicleCount ? "border-red-500" : ""}
-                    />
-                    {errors.vehicleCount && (
-                      <div className="text-red-500 text-xs mt-1">
-                        {errors.vehicleCount}
-                      </div>
-                    )}
-                  </div>
+                  <NumericInput
+                    label="Number of 4W Vehicles"
+                    placeholder="Number"
+                    value={localData.vehicleCount}
+                    onChange={(val) => update({ vehicleCount: val })}
+                    error={errors.vehicleCount}
+                    required
+                    step="1"
+                  />
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={localData.hasCCTV || false}
@@ -996,89 +1063,51 @@ const GaushalaNGOForm = () => {
                 Cattle Details & Media
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label>Nandi Count *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={localData.nandiCount || ""}
-                    onChange={(e) => update({ nandiCount: e.target.value })}
-                    className={errors.nandiCount ? "border-red-500" : ""}
-                  />
-                  {errors.nandiCount && (
-                    <div className="text-red-500 text-xs mt-1">
-                      {errors.nandiCount}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label>Milking Cow Count *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={localData.milkingCowCount || ""}
-                    onChange={(e) =>
-                      update({ milkingCowCount: e.target.value })
-                    }
-                    className={errors.milkingCowCount ? "border-red-500" : ""}
-                  />
-                  {errors.milkingCowCount && (
-                    <div className="text-red-500 text-xs mt-1">
-                      {errors.milkingCowCount}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label>Non-Milking Cow Count *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={localData.nonMilkingCowCount || ""}
-                    onChange={(e) =>
-                      update({ nonMilkingCowCount: e.target.value })
-                    }
-                    className={
-                      errors.nonMilkingCowCount ? "border-red-500" : ""
-                    }
-                  />
-                  {errors.nonMilkingCowCount && (
-                    <div className="text-red-500 text-xs mt-1">
-                      {errors.nonMilkingCowCount}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label>Male Calf Count *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={localData.maleCalfCount || ""}
-                    onChange={(e) => update({ maleCalfCount: e.target.value })}
-                    className={errors.maleCalfCount ? "border-red-500" : ""}
-                  />
-                  {errors.maleCalfCount && (
-                    <div className="text-red-500 text-xs mt-1">
-                      {errors.maleCalfCount}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label>Female Calf Count *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={localData.femaleCalfCount || ""}
-                    onChange={(e) =>
-                      update({ femaleCalfCount: e.target.value })
-                    }
-                    className={errors.femaleCalfCount ? "border-red-500" : ""}
-                  />
-                  {errors.femaleCalfCount && (
-                    <div className="text-red-500 text-xs mt-1">
-                      {errors.femaleCalfCount}
-                    </div>
-                  )}
-                </div>
+                <NumericInput
+                  label="Nandi Count"
+                  placeholder="0"
+                  value={localData.nandiCount}
+                  onChange={(val) => update({ nandiCount: val })}
+                  error={errors.nandiCount}
+                  required
+                  step="1"
+                />
+                <NumericInput
+                  label="Milking Cow Count"
+                  placeholder="0"
+                  value={localData.milkingCowCount}
+                  onChange={(val) => update({ milkingCowCount: val })}
+                  error={errors.milkingCowCount}
+                  required
+                  step="1"
+                />
+                <NumericInput
+                  label="Non-Milking Cow Count"
+                  placeholder="0"
+                  value={localData.nonMilkingCowCount}
+                  onChange={(val) => update({ nonMilkingCowCount: val })}
+                  error={errors.nonMilkingCowCount}
+                  required
+                  step="1"
+                />
+                <NumericInput
+                  label="Male Calf Count"
+                  placeholder="0"
+                  value={localData.maleCalfCount}
+                  onChange={(val) => update({ maleCalfCount: val })}
+                  error={errors.maleCalfCount}
+                  required
+                  step="1"
+                />
+                <NumericInput
+                  label="Female Calf Count"
+                  placeholder="0"
+                  value={localData.femaleCalfCount}
+                  onChange={(val) => update({ femaleCalfCount: val })}
+                  error={errors.femaleCalfCount}
+                  required
+                  step="1"
+                />
               </div>
               <div className="mt-6">
                 <Label>Photos / Videos of Gaushala *</Label>
