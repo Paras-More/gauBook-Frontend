@@ -113,8 +113,94 @@ const VolunteerDonorInfluencerForm = () => {
     formDataToSend.append("vetSkills", localData.vetSkills || "");
     formDataToSend.append("hasTransport", localData.hasTransport || false);
     formDataToSend.append("bio", localData.bio || "");
-    formDataToSend.append("roles", JSON.stringify(selectedRoles));
+    // Add selectedRole to roles if not already in selectedRoles
+    const rolesArray =
+      selectedRoles.length > 0 ? selectedRoles : [selectedRole];
+    formDataToSend.append("roles", JSON.stringify(rolesArray));
+    const {
+      enabledPlatforms = [],
+      youtubeId,
+      youtubeSubscribers,
+      youtubeVerified,
+      instagramId,
+      instagramSubscribers,
+      instagramVerified,
+      facebookId,
+      facebookSubscribers,
+      facebookVerified,
+      twitterId,
+      twitterSubscribers,
+      twitterVerified,
+      whatsappChannelId,
+      whatsappChannelSubscribers,
+      whatsappChannelVerified,
+      availAnytime,
+      weekdayMorning,
+      weekdayAfternoon,
+      weekdayEvening,
+      weekendMorning,
+      weekendAfternoon,
+      weekendEvening,
+      ...rest
+    } = localData;
 
+    // Extract social media fields from localData
+    const platformMap = {
+      youtube: {
+        platform: "Youtube",
+        id: youtubeId,
+        subscribers: youtubeSubscribers,
+        verified: youtubeVerified,
+      },
+      instagram: {
+        platform: "Instagram",
+        id: instagramId,
+        subscribers: instagramSubscribers,
+        verified: instagramVerified,
+      },
+      facebook: {
+        platform: "FaceBook",
+        id: facebookId,
+        subscribers: facebookSubscribers,
+        verified: facebookVerified,
+      },
+      twitter: {
+        platform: "X",
+        id: twitterId,
+        subscribers: twitterSubscribers,
+        verified: twitterVerified,
+      },
+      whatsappChannel: {
+        platform: "WhatsApp",
+        id: whatsappChannelId,
+        subscribers: whatsappChannelSubscribers,
+        verified: whatsappChannelVerified,
+      },
+    };
+    const socialMedia = enabledPlatforms
+      .map((key: string | number) => {
+        const p = platformMap[key];
+        if (!p || !p.id) return null;
+        return {
+          platform: p.platform,
+          platformId: p.id,
+          subscriberCount: p.subscribers ? Number(p.subscribers) : 0,
+          isVerified: !!p.verified,
+        };
+      })
+      .filter(Boolean);
+
+    formDataToSend.append("socialMedia", JSON.stringify(socialMedia));
+    const availability = {
+      anytime: !!availAnytime,
+      weekdayMorning: !!weekdayMorning,
+      weekdayAfternoon: !!weekdayAfternoon,
+      weekdayEvening: !!weekdayEvening,
+      weekendMorning: !!weekendMorning,
+      weekendAfternoon: !!weekendAfternoon,
+      weekendEvening: !!weekendEvening,
+    };
+    formDataToSend.append("availability", JSON.stringify(availability));
     // Append profile photo if exists
     if (profilePhoto) {
       formDataToSend.append("profilePhoto", profilePhoto);
@@ -143,7 +229,6 @@ const VolunteerDonorInfluencerForm = () => {
       : [...current, activity];
     update({ activities: updated });
   };
-  console.log("selectedRole", selectedRole);
 
   return (
     <div className="max-w-3xl mx-auto">
