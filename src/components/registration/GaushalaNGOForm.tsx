@@ -46,6 +46,7 @@ const GaushalaNGOForm = () => {
     gaushalaMedia?: File[];
   }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordError, setPasswordError] = useState<string>("");
   const isNGO = selectedRole === "ngo";
   const steps = isNGO
     ? ["Basic Info", "Documents", "Operations", "Review"]
@@ -55,6 +56,16 @@ const GaushalaNGOForm = () => {
 
   const update = (data: Record<string, any>) => {
     setLocalData((prev) => ({ ...prev, ...data }));
+    // Validate password if it's being updated
+    if (data.password !== undefined) {
+      if (data.password && data.password.length < 8) {
+        setPasswordError("Password must be at least 8 characters long");
+      } else if (data.password && data.password.length > 0) {
+        setPasswordError("");
+      } else if (data.password === "") {
+        setPasswordError("");
+      }
+    }
   };
 
   // File input change handler
@@ -97,6 +108,10 @@ const GaushalaNGOForm = () => {
       newErrors.state = "State is required";
     if (!localData.district || localData.district.trim() === "")
       newErrors.district = "District is required";
+    if (!localData.password || localData.password.trim() === "")
+      newErrors.password = "Password is required";
+    if (localData.password && localData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters long";
 
     // Add more validations as needed
     // Only validate these fields for non-NGO  i.e(Gaushala) forms
@@ -603,6 +618,35 @@ const GaushalaNGOForm = () => {
                     <div className="text-red-500 text-xs mt-1">
                       {errors.email}
                     </div>
+                  )}
+                </div>
+                <div>
+                  <Label>Password *</Label>
+                  <Input
+                    type="password"
+                    placeholder="Create a strong password"
+                    value={localData.password || ""}
+                    onChange={(e) => update({ password: e.target.value })}
+                    className={
+                      passwordError
+                        ? "border-red-500 focus:ring-red-500"
+                        : errors.password
+                          ? "border-red-500"
+                          : ""
+                    }
+                  />
+                  {passwordError ? (
+                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                      ❌ {passwordError}
+                    </p>
+                  ) : localData.password ? (
+                    <p className="text-xs text-green-500 mt-1 font-semibold">
+                      ✓ Password valid
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Min. 8 characters
+                    </p>
                   )}
                 </div>
                 <div>

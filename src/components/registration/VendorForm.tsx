@@ -31,13 +31,30 @@ const VendorForm = () => {
     selectedRole,
   } = useRegistrationStore();
   const [localData, setLocalData] = useState<Record<string, any>>(formData);
+  const [passwordError, setPasswordError] = useState<string>("");
   const stepIndex = currentStep - 1;
 
   const update = (data: Record<string, any>) => {
     setLocalData((prev) => ({ ...prev, ...data }));
+    // Validate password if it's being updated
+    if (data.password !== undefined) {
+      if (data.password && data.password.length < 8) {
+        setPasswordError("Password must be at least 8 characters long");
+      } else if (data.password && data.password.length > 0) {
+        setPasswordError("");
+      } else if (data.password === "") {
+        setPasswordError("");
+      }
+    }
   };
 
   const handleNext = () => {
+    // Validate password before moving to next step
+    if (localData.password && localData.password.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      toast.error("Please fix password requirements before proceeding");
+      return;
+    }
     updateFormData(localData);
     if (stepIndex < steps.length - 1) setCurrentStep(currentStep + 1);
   };
@@ -188,6 +205,31 @@ const VendorForm = () => {
                     value={localData.email || ""}
                     onChange={(e) => update({ email: e.target.value })}
                   />
+                </div>
+                <div>
+                  <Label>Password *</Label>
+                  <Input
+                    type="password"
+                    placeholder="Create a strong password"
+                    value={localData.password || ""}
+                    onChange={(e) => update({ password: e.target.value })}
+                    className={
+                      passwordError ? "border-red-500 focus:ring-red-500" : ""
+                    }
+                  />
+                  {passwordError ? (
+                    <p className="text-xs text-red-500 mt-1 font-semibold">
+                      ❌ {passwordError}
+                    </p>
+                  ) : localData.password ? (
+                    <p className="text-xs text-green-500 mt-1 font-semibold">
+                      ✓ Password valid
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Min. 8 characters
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Business Type *</Label>
