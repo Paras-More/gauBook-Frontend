@@ -18,6 +18,7 @@ import SocialMediaFields from "./SocialMediaFields";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { registerUser } from "@/axios/Registrations";
+import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
 
 const steps = ["Basic Info", "Preferences", "Skills & Social", "Review"];
 
@@ -224,7 +225,7 @@ const VolunteerDonorInfluencerForm = () => {
       formDataToSend.append("profilePhoto", profilePhoto);
     }
 
-    toast.success(`${roleName} registration submitted successfully! 🎉`);
+    showSuccessToast(`${roleName} registration submitted successfully! 🎉`);
     console.log("Registration data:", {
       ...formData,
       ...localData,
@@ -236,7 +237,7 @@ const VolunteerDonorInfluencerForm = () => {
       const result = await registerUser(formDataToSend);
       console.log("API response:", result);
     } catch (e) {
-      toast.error("Failed to submit registration. Please try again.");
+      showErrorToast("Failed to submit registration. Please try again.");
     }
   };
 

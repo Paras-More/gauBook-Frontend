@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { roleIcons, roleLabels } from "@/stores/registrationStore";
 import { Mail, Lock, Phone, ArrowLeft } from "lucide-react";
+import { loginGaushala, loginNgo, loginUser, loginVendor } from "@/axios/Login";
+import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
 
 const USER_TYPES = [
   { label: roleLabels.gaushala, value: "gaushala", icon: roleIcons.gaushala },
@@ -32,7 +34,8 @@ export default function Login() {
   const [emailOrMobile, setEmailOrMobile] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [error, setError] = useState("");
+  const user = ["volunteer", "donor", "influencer"];
   useEffect(() => {
     const rememberedType = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (rememberedType) {
@@ -53,18 +56,69 @@ export default function Login() {
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    // Navigate to dashboard or home after successful login
-    navigate("/");
+    setError("");
+
+    // Determine if input is email or mobile
+    const isEmail = emailOrMobile.includes("@");
+    const payload = isEmail
+      ? { email: emailOrMobile, password }
+      : { mobile: emailOrMobile, password };
+
+    try {
+      setIsLoading(true);
+      if (user.includes(userType)) {
+        const response = await loginUser(payload);
+        if (response.success) {
+          showSuccessToast("Login successful! 🎉");
+          navigate("/directory");
+        }
+        // Call user login API
+      } else if (userType === "vendor") {
+        const response = await loginVendor(payload);
+        if (response.success) {
+          showSuccessToast("Login successful! 🎉");
+          navigate("/directory");
+        }
+        // Call vendor login API
+      } else if (userType === "gaushala") {
+        // Call gaushala login API
+        const response = await loginGaushala(payload);
+        if (response.success) {
+          showSuccessToast("Login successful! 🎉");
+          navigate("/directory");
+        }
+      } else if (userType === "ngo") {
+        // Call NGO login API
+        const response = await loginNgo(payload);
+        if (response.success) {
+          showSuccessToast("Login successful! 🎉");
+          navigate("/directory");
+        }
+      }
+    } catch (error: any) {
+      console.log(error.message);
+
+      let errorMessage = "Login failed. Please try again.";
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      setError(errorMessage);
+      showErrorToast(errorMessage);
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToUserType = () => {
     setStep(1);
     setEmailOrMobile("");
     setPassword("");
+    setError("");
   };
 
   return (
@@ -194,12 +248,12 @@ export default function Login() {
                 className="mt-8 text-center text-muted-foreground text-sm"
               >
                 New here?{" "}
-                <a
-                  href="/register"
+                <Link
+                  to="/register"
                   className="text-orange-600 hover:underline font-semibold"
                 >
                   Register
-                </a>
+                </Link>
               </motion.div>
             </motion.form>
           ) : (
@@ -232,6 +286,16 @@ export default function Login() {
                   {roleLabels[userType as keyof typeof roleLabels]}
                 </span>
               </motion.p>
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg"
+                >
+                  <p className="text-sm font-medium text-red-800">{error}</p>
+                </motion.div>
+              )}
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

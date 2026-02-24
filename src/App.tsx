@@ -8,7 +8,7 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Directory from "./pages/Directory";
 import Login from "./pages/Login";
-import Header from "@/components/layout/Header";
+import Header from "./components/layout/Header";
 
 const queryClient = new QueryClient();
 

@@ -18,6 +18,7 @@ import SocialMediaFields from "./SocialMediaFields";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { registerVendor } from "@/axios/Registrations";
+import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
 
 const steps = ["Business Info", "Products & Services", "Review"];
 
@@ -141,9 +142,9 @@ const VendorForm = () => {
     });
     try {
       const response = await registerVendor(formDataToSend);
-      toast.success("Vendor registration submitted successfully! 🎉");
+      showSuccessToast("Vendor registration submitted successfully! 🎉");
     } catch (error) {
-      toast.error("Error submitting registration. Please try again.");
+      showErrorToast("Error submitting registration. Please try again.");
       return;
     }
   };

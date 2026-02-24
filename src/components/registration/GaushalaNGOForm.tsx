@@ -19,6 +19,7 @@ import NumericInput from "./NumericInput";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { registerGaushala, registerNgo } from "@/axios/Registrations";
+import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
 
 const gaushalaNgoSteps = [
   "Basic Info",
@@ -354,7 +355,7 @@ const GaushalaNGOForm = () => {
       } else {
         await registerNgo(formDataToSend);
       }
-      toast.success(
+      showSuccessToast(
         `${roleLabels[selectedRole!]} registration submitted successfully! 🎉`,
       );
     } catch (error: any) {
@@ -364,7 +365,7 @@ const GaushalaNGOForm = () => {
       } else if (error?.message) {
         message = error.message;
       }
-      toast.error(message);
+      showErrorToast(message);
     }
   };
 
