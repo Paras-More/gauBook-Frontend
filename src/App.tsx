@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Directory from "./pages/Directory";
+import Login from "./pages/Login";
+import Header from "@/components/layout/Header";
 
 const queryClient = new QueryClient();
 
@@ -16,10 +18,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Header />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<Register />} />
           <Route path="/directory" element={<Directory />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
