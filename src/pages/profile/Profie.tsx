@@ -129,14 +129,11 @@ const mockProfiles: Record<UserRole, Record<string, any>> = {
       "Nursing Care",
       "Social Media Manager",
       "Event Organizing",
+      "Donor",
+      "Fundraising Support",
+      "Social Media Influencer",
+      "Marketing",
     ],
-    availability: {
-      anytime: false,
-      weekdayMorning: true,
-      weekdayEvening: true,
-      weekendMorning: true,
-      weekendAfternoon: true,
-    },
     animalCareExp: "5 years of hands-on experience with cattle care",
     vetSkills: "Basic first-aid and wound care",
     hasTransport: true,
@@ -145,9 +142,20 @@ const mockProfiles: Record<UserRole, Record<string, any>> = {
     volunteeringVisits: 87,
     hoursContributed: 520,
     impactScore: 72,
-    followers: 340,
-    posts: 45,
-    socialMedia: { instagram: "@arjun_gauseva" },
+    donationsCount: 34,
+    gaushalasSupported: 8,
+    campaignsCreated: 15,
+    liveStreams: 42,
+    totalReach: "2.5M",
+    followers: 5200,
+    posts: 312,
+    verificationStatus: "verified",
+    socialMedia: {
+      instagram: "@arjun_gauseva",
+      youtube: "@VikramGauSeva",
+      facebook: "VikramGauSeva",
+      twitter: "@vikram_gauseva",
+    },
   },
   donor: {
     name: "Sunita Devi",
@@ -162,12 +170,31 @@ const mockProfiles: Record<UserRole, Record<string, any>> = {
     gender: "Female",
     experience: "Experienced",
     gaushalasKnown: "Gau Lok Gaushala, Vrindavan Gaushala",
-    activities: ["Donor", "Fundraising Support"],
+    activities: [
+      "Donor",
+      "Fundraising Support",
+      "Event Organizing",
+      "Social Media Manager",
+    ],
+    animalCareExp: "2 years of volunteering",
+    vetSkills: "",
+    hasTransport: false,
+    socialMediaCampaign: false,
+    eventOrganizing: true,
+    volunteeringVisits: 10,
+    hoursContributed: 100,
+    impactScore: 40,
     donationsCount: 34,
     gaushalasSupported: 8,
+    campaignsCreated: 2,
+    liveStreams: 0,
+    totalReach: "10K",
     followers: 120,
     posts: 18,
-    socialMedia: {},
+    verificationStatus: "pending",
+    socialMedia: {
+      instagram: "@donor_sunita",
+    },
   },
   influencer: {
     name: "Vikram Singh",
@@ -181,7 +208,23 @@ const mockProfiles: Record<UserRole, Record<string, any>> = {
     age: 32,
     gender: "Male",
     experience: "Experienced",
-    activities: ["Social Media Influencer", "Marketing", "Fundraising Support"],
+    gaushalasKnown: "",
+    activities: [
+      "Social Media Influencer",
+      "Marketing",
+      "Fundraising Support",
+      "Event Organizing",
+    ],
+    animalCareExp: "",
+    vetSkills: "",
+    hasTransport: false,
+    socialMediaCampaign: true,
+    eventOrganizing: true,
+    volunteeringVisits: 0,
+    hoursContributed: 0,
+    impactScore: 0,
+    donationsCount: 0,
+    gaushalasSupported: 0,
     campaignsCreated: 15,
     liveStreams: 42,
     totalReach: "2.5M",
@@ -573,6 +616,34 @@ const NGODetails = ({ data }: { data: Record<string, any> }) => (
           value={data.areasOfOperation}
         />
         <InfoItem
+          icon={Shield}
+          label="PAN Number"
+          value={data.pan || "Not Provided"}
+        />
+        <div className="flex items-center gap-2">
+          <InfoItem
+            icon={Building2}
+            label="NGO Certificate"
+            value={data.ngoCertificate || "Not Provided"}
+          />
+          <Badge
+            variant="outline"
+            className={
+              data.ngoCertificateStatus === "verified"
+                ? "bg-green-100 text-green-700 border-green-200"
+                : data.ngoCertificateStatus === "pending"
+                  ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                  : "bg-red-100 text-red-700 border-red-200"
+            }
+          >
+            {data.ngoCertificateStatus === "verified"
+              ? "Verified"
+              : data.ngoCertificateStatus === "pending"
+                ? "Pending"
+                : "Required"}
+          </Badge>
+        </div>
+        <InfoItem
           icon={CheckCircle2}
           label="80G Certificate"
           value={data.has80GCertificate ? "Available" : "No"}
@@ -620,7 +691,6 @@ const NGODetails = ({ data }: { data: Record<string, any> }) => (
 
 const VolunteerDonorInfluencerDetails = ({
   data,
-  role,
 }: {
   data: Record<string, any>;
   role: UserRole;
@@ -628,9 +698,9 @@ const VolunteerDonorInfluencerDetails = ({
   <Tabs defaultValue="overview" className="w-full">
     <TabsList className="w-full justify-start bg-secondary/50 mb-6">
       <TabsTrigger value="overview">Overview</TabsTrigger>
-      {role === "volunteer" && <TabsTrigger value="skills">Skills</TabsTrigger>}
-      {role === "influencer" && <TabsTrigger value="reach">Reach</TabsTrigger>}
+      <TabsTrigger value="skills">Skills</TabsTrigger>
       <TabsTrigger value="activity">Activity</TabsTrigger>
+      <TabsTrigger value="availability">Availability</TabsTrigger>
       <TabsTrigger value="social">Social</TabsTrigger>
     </TabsList>
     <TabsContent value="overview">
@@ -682,79 +752,173 @@ const VolunteerDonorInfluencerDetails = ({
         )}
       </motion.div>
     </TabsContent>
-    {role === "volunteer" && (
-      <TabsContent value="skills">
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate="visible"
-          className="space-y-3"
-        >
-          {data.animalCareExp && (
-            <InfoItem
-              icon={Heart}
-              label="Animal Care Experience"
-              value={data.animalCareExp}
-            />
+    <TabsContent value="availability">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="visible"
+        className="space-y-3"
+      >
+        <div className="p-4 rounded-lg bg-secondary/50">
+          <p className="text-sm text-muted-foreground mb-2 font-semibold">
+            Availability
+          </p>
+          <div className="flex items-start gap-8 flex-wrap">
+            {/* Mock selected slots for demo */}
+            {(() => {
+              // Example: user selected Weekdays Morning, Weekends Evening
+              const selected = {
+                anytime: false,
+                weekdays: ["Morning"],
+                weekends: ["Evening"],
+              };
+              return (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <span
+                      className={
+                        selected.anytime
+                          ? "inline-block px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium flex items-center gap-1"
+                          : "inline-block px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-sm font-medium"
+                      }
+                    >
+                      {selected.anytime && (
+                        <svg
+                          className="w-4 h-4 text-green-600 inline mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                      Anytime
+                    </span>
+                  </div>
+                  <div className="flex gap-6 flex-wrap">
+                    {/* Weekdays */}
+                    <div className="bg-orange-50 rounded-xl p-4 min-w-[180px]">
+                      <div className="font-semibold text-xs text-blue-900 mb-2">
+                        Weekdays
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {["Morning", "Afternoon", "Evening"].map((slot) => (
+                          <span
+                            key={slot}
+                            className={
+                              selected.weekdays.includes(slot)
+                                ? "inline-block px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold flex items-center gap-1"
+                                : "inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold"
+                            }
+                          >
+                            {selected.weekdays.includes(slot) && (
+                              <svg
+                                className="w-3 h-3 text-green-600 inline mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                            {slot}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Weekends */}
+                    <div className="bg-orange-50 rounded-xl p-4 min-w-[180px]">
+                      <div className="font-semibold text-xs text-blue-900 mb-2">
+                        Weekends
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {["Morning", "Afternoon", "Evening"].map((slot) => (
+                          <span
+                            key={slot}
+                            className={
+                              selected.weekends.includes(slot)
+                                ? "inline-block px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold flex items-center gap-1"
+                                : "inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold"
+                            }
+                          >
+                            {selected.weekends.includes(slot) && (
+                              <svg
+                                className="w-3 h-3 text-green-600 inline mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                            {slot}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      </motion.div>
+    </TabsContent>
+    <TabsContent value="skills">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="visible"
+        className="space-y-3"
+      >
+        {data.animalCareExp && (
+          <InfoItem
+            icon={Heart}
+            label="Animal Care Experience"
+            value={data.animalCareExp}
+          />
+        )}
+        {data.vetSkills && (
+          <InfoItem
+            icon={Stethoscope}
+            label="Veterinary Skills"
+            value={data.vetSkills}
+          />
+        )}
+        <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mt-2">
+          {data.hasTransport && (
+            <Badge className="gradient-saffron text-primary-foreground gap-1">
+              <Truck className="w-3 h-3" /> Transport Available
+            </Badge>
           )}
-          {data.vetSkills && (
-            <InfoItem
-              icon={Stethoscope}
-              label="Veterinary Skills"
-              value={data.vetSkills}
-            />
+          {data.socialMediaCampaign && (
+            <Badge className="gradient-saffron text-primary-foreground gap-1">
+              <Camera className="w-3 h-3" /> Social Campaigning
+            </Badge>
           )}
-          <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mt-2">
-            {data.hasTransport && (
-              <Badge className="gradient-saffron text-primary-foreground gap-1">
-                <Truck className="w-3 h-3" /> Transport Available
-              </Badge>
-            )}
-            {data.socialMediaCampaign && (
-              <Badge className="gradient-saffron text-primary-foreground gap-1">
-                <Camera className="w-3 h-3" /> Social Campaigning
-              </Badge>
-            )}
-            {data.eventOrganizing && (
-              <Badge className="gradient-saffron text-primary-foreground gap-1">
-                <Users className="w-3 h-3" /> Event Organizing
-              </Badge>
-            )}
-          </motion.div>
+          {data.eventOrganizing && (
+            <Badge className="gradient-saffron text-primary-foreground gap-1">
+              <Users className="w-3 h-3" /> Event Organizing
+            </Badge>
+          )}
         </motion.div>
-      </TabsContent>
-    )}
-    {role === "influencer" && (
-      <TabsContent value="reach">
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-        >
-          <StatCard
-            icon={TrendingUp}
-            label="Total Reach"
-            value={data.totalReach || "0"}
-          />
-          <StatCard
-            icon={Video}
-            label="Live Streams"
-            value={data.liveStreams || 0}
-          />
-          <StatCard
-            icon={Camera}
-            label="Campaigns"
-            value={data.campaignsCreated || 0}
-          />
-          <StatCard
-            icon={Users}
-            label="Followers"
-            value={data.followers || 0}
-          />
-        </motion.div>
-      </TabsContent>
-    )}
+      </motion.div>
+    </TabsContent>
     <TabsContent value="activity">
       <motion.div
         variants={stagger}
@@ -762,54 +926,31 @@ const VolunteerDonorInfluencerDetails = ({
         animate="visible"
         className="grid grid-cols-2 sm:grid-cols-3 gap-4"
       >
-        {role === "volunteer" && (
-          <>
-            <StatCard
-              icon={MapPin}
-              label="Visits"
-              value={data.volunteeringVisits || 0}
-            />
-            <StatCard
-              icon={Clock}
-              label="Hours"
-              value={data.hoursContributed || 0}
-            />
-            <StatCard
-              icon={Star}
-              label="Impact Score"
-              value={data.impactScore || 0}
-            />
-          </>
-        )}
-        {role === "donor" && (
-          <>
-            <StatCard
-              icon={Heart}
-              label="Donations"
-              value={data.donationsCount || 0}
-            />
-            <StatCard
-              icon={Building2}
-              label="Gaushalas Supported"
-              value={data.gaushalasSupported || 0}
-            />
-            <StatCard
-              icon={Users}
-              label="Followers"
-              value={data.followers || 0}
-            />
-          </>
-        )}
-        {role === "influencer" && (
-          <>
-            <StatCard icon={Camera} label="Posts" value={data.posts || 0} />
-            <StatCard
-              icon={Users}
-              label="Followers"
-              value={data.followers || 0}
-            />
-          </>
-        )}
+        <StatCard
+          icon={MapPin}
+          label="Visits"
+          value={
+            data.volunteeringVisits ||
+            data.donationsCount ||
+            data.campaignsCreated ||
+            0
+          }
+        />
+        <StatCard
+          icon={Clock}
+          label="Hours/Donations/Live Streams"
+          value={
+            data.hoursContributed ||
+            data.gaushalasSupported ||
+            data.liveStreams ||
+            0
+          }
+        />
+        <StatCard
+          icon={Star}
+          label="Impact/Followers/Posts"
+          value={data.impactScore || data.followers || data.posts || 0}
+        />
       </motion.div>
     </TabsContent>
     <TabsContent value="social">
@@ -998,7 +1139,7 @@ const Profile = () => {
     followers: 340,
     posts: 45,
     website: "",
-    roles: ["gaushala"], // Example roles array
+    roles: ["vendor"], // Example roles array (now as separate strings)
     // Role-specific data
     volunteer: mockProfiles.volunteer,
     donor: mockProfiles.donor,
@@ -1117,20 +1258,20 @@ const Profile = () => {
             <VendorDetails data={mockProfiles.vendor} />
           )}
 
-          {/* Render all Volunteer/Donor/Influencer sections if user has those roles */}
-          {user.roles
-            .filter((r) => ["volunteer", "donor", "influencer"].includes(r))
-            .map((role) => (
-              <div key={role} className="mb-8">
-                <h2 className="text-xl font-heading font-bold mb-2 text-foreground">
-                  {roleLabels[role]}
-                </h2>
-                <VolunteerDonorInfluencerDetails
-                  data={user[role]}
-                  role={"volunteer" as UserRole}
-                />
-              </div>
-            ))}
+          {/* Render unified Volunteer/Donor/Influencer section if user has any of those roles */}
+          {user.roles.some((r) =>
+            ["volunteer", "donor", "influencer"].includes(r),
+          ) && (
+            <div className="mb-8">
+              <h2 className="text-xl font-heading font-bold mb-2 text-foreground">
+                Volunteer / Donor / Influencer
+              </h2>
+              <VolunteerDonorInfluencerDetails
+                data={user.volunteer}
+                role={"volunteer" as UserRole}
+              />
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
