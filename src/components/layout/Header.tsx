@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/authStore";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Header = () => {
   return (
@@ -32,11 +34,32 @@ const Header = () => {
           </Link>
         </nav>
         <div className="flex items-center gap-3">
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              Login
-            </Button>
-          </Link>
+          {(() => {
+            const userId = useAuthStore((state) => state.userId);
+            const userName = useAuthStore((state) => state.userName);
+            if (userId) {
+              return (
+                <Link to="/profile">
+                  <Avatar className="w-8 h-8 border border-border">
+                    <AvatarFallback className="bg-gradient-to-br from-primary/80 to-secondary/80 text-primary-foreground font-bold">
+                      {userName?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              );
+            }
+            return (
+              <Link to="/login">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
+                  Login
+                </Button>
+              </Link>
+            );
+          })()}
           <Link to="/register">
             <Button
               size="sm"

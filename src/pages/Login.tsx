@@ -6,7 +6,7 @@ import { roleIcons, roleLabels } from "@/stores/registrationStore";
 import { Mail, Lock, Phone, ArrowLeft } from "lucide-react";
 import { loginGaushala, loginNgo, loginUser, loginVendor } from "@/axios/Login";
 import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
-
+import { useAuthStore } from "@/stores/authStore";
 const USER_TYPES = [
   { label: roleLabels.gaushala, value: "gaushala", icon: roleIcons.gaushala },
   {
@@ -27,6 +27,7 @@ const USER_TYPES = [
 const LOCAL_STORAGE_KEY = "gaubook_user_type";
 
 export default function Login() {
+  const { setUser } = useAuthStore();
   const navigate = useNavigate();
   const [userType, setUserType] = useState("");
   const [remember, setRemember] = useState(false);
@@ -68,30 +69,60 @@ export default function Login() {
       setIsLoading(true);
       if (user.includes(userType)) {
         const response = await loginUser(payload);
+        console.log(response);
+
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
+          setUser(
+            response.data.id,
+            response.data.name,
+            response.data.role || "user",
+          );
           navigate("/directory");
         }
         // Call user login API
       } else if (userType === "vendor") {
         const response = await loginVendor(payload);
+        console.log(response);
+
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
+          setUser(
+            response.data.id,
+            response.data.name,
+            response.data.role || "vendor",
+          );
           navigate("/directory");
         }
         // Call vendor login API
       } else if (userType === "gaushala") {
         // Call gaushala login API
         const response = await loginGaushala(payload);
+        console.log("response gaushala", response);
+
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
-          navigate("/directory");
+          console.log("response.data.id", response.data.id);
+
+          setUser(
+            response.data.id,
+            response.data.name,
+            response.data.role || "gaushala",
+          );
+          navigate("/profile");
         }
       } else if (userType === "ngo") {
         // Call NGO login API
         const response = await loginNgo(payload);
+        console.log(response);
+
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
+          setUser(
+            response.data.id,
+            response.data.name,
+            response.data.role || "ngo",
+          );
           navigate("/directory");
         }
       }

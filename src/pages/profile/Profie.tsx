@@ -1,4 +1,46 @@
-import { useState } from "react";
+// ─── Profile Skeleton Loader ─────────────────────────────────────
+const ProfileSkeleton = () => (
+  <div className="min-h-screen bg-background">
+    <div className="container px-4 py-8 max-w-5xl mx-auto">
+      <div className="mb-6 animate-pulse">
+        <div className="relative rounded-2xl overflow-hidden border border-border shadow-card">
+          <div className="h-40 lg:h-52 bg-muted" />
+          <div className="relative px-6 lg:px-8 pb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-14">
+              <div className="w-28 h-28 rounded-full bg-muted border-4 border-card shadow-warm" />
+              <div className="flex-1 pt-2 sm:pt-0 sm:pb-1">
+                <div className="h-8 w-40 bg-muted rounded mb-2" />
+                <div className="h-4 w-24 bg-muted rounded" />
+              </div>
+              <div className="flex gap-2 mt-2 sm:mt-0">
+                <div className="h-8 w-16 bg-muted rounded" />
+                <div className="h-8 w-16 bg-muted rounded" />
+              </div>
+            </div>
+            <div className="mt-5 space-y-3">
+              <div className="h-4 w-3/4 bg-muted rounded" />
+              <div className="flex gap-4">
+                <div className="h-4 w-32 bg-muted rounded" />
+                <div className="h-4 w-32 bg-muted rounded" />
+                <div className="h-4 w-32 bg-muted rounded" />
+              </div>
+            </div>
+            <div className="flex gap-6 mt-5 pt-4 border-t border-border">
+              <div className="h-6 w-16 bg-muted rounded" />
+              <div className="h-6 w-16 bg-muted rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-32 bg-muted rounded-xl" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import Header from "@/components/layout/Header";
@@ -7,7 +49,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserRole, roleLabels, roleIcons } from "@/stores/registrationStore";
+import {
+  UserRole,
+  roleLabels,
+  roleIcons,
+  useRegistrationStore,
+} from "@/stores/registrationStore";
 import {
   MapPin,
   Phone,
@@ -36,6 +83,13 @@ import {
   TrendingUp,
   MessageSquare,
 } from "lucide-react";
+import {
+  getGaushalaProfile,
+  getNGOProfile,
+  getVendorProfile,
+  getVolunteerDonorInfluencerProfile,
+} from "@/axios/Profile";
+import { useAuthStore } from "@/stores/authStore";
 
 // Mock profile data per role
 const mockProfiles: Record<UserRole, Record<string, any>> = {
@@ -340,28 +394,55 @@ const StatCard = ({
 
 const SocialBadge = ({
   platform,
-  handle,
+  platformId,
+  subscriberCount,
+  isVerified,
 }: {
   platform: string;
-  handle: string;
+  platformId: string;
+  subscriberCount: number;
+  isVerified: boolean;
 }) => {
   const icons: Record<string, any> = {
-    youtube: Youtube,
-    instagram: Instagram,
-    facebook: Facebook,
-    twitter: Twitter,
+    Youtube: Youtube,
+    Instagram: Instagram,
+    Facebook: Facebook,
+    Twitter: Twitter,
   };
+
   const Icon = icons[platform] || Globe;
+  // Format subscriber count for readability
+  const formatSubs = (count: number) => {
+    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+    if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+    return count;
+  };
   return (
-    <motion.a
+    <motion.div
       variants={fadeUp}
-      whileHover={{ scale: 1.05 }}
-      href="#"
-      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border transition-colors"
+      whileHover={{ scale: 1.07 }}
+      className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-secondary/80 to-card border border-border shadow-card transition-all min-w-[180px]"
     >
-      <Icon className="w-4 h-4 text-primary" />
-      <span className="text-sm text-foreground font-medium">{handle}</span>
-    </motion.a>
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+        <Icon className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex flex-col min-w-0">
+        <span className="text-xs font-semibold text-muted-foreground mb-0.5 capitalize">
+          {platform}
+        </span>
+        <span className="text-sm text-foreground font-medium truncate">
+          {platformId}
+        </span>
+        <span className="text-xs text-muted-foreground mt-0.5">
+          {formatSubs(subscriberCount)} Subscribers
+        </span>
+      </div>
+      {isVerified && (
+        <span className="ml-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold border border-green-200">
+          <CheckCircle2 className="w-3 h-3" /> Verified
+        </span>
+      )}
+    </motion.div>
   );
 };
 
@@ -562,13 +643,20 @@ const GaushalaDetails = ({ data }: { data: Record<string, any> }) => (
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        {Object.entries(data.socialMedia || {}).map(([platform, handle]) => (
+        {(data.socialMedia || []).map((sm: any, idx: number) => (
           <SocialBadge
-            key={platform}
-            platform={platform}
-            handle={handle as string}
+            key={sm.platform + sm.platformId}
+            platform={sm.platform}
+            platformId={sm.platformId}
+            subscriberCount={sm.subscriberCount}
+            isVerified={sm.isVerified}
           />
         ))}
+        {(data.socialMedia || []).length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No social media linked
+          </p>
+        )}
       </motion.div>
     </TabsContent>
   </Tabs>
@@ -677,13 +765,20 @@ const NGODetails = ({ data }: { data: Record<string, any> }) => (
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        {Object.entries(data.socialMedia || {}).map(([platform, handle]) => (
+        {(data.socialMedia || []).map((sm: any, idx: number) => (
           <SocialBadge
-            key={platform}
-            platform={platform}
-            handle={handle as string}
+            key={sm.platform + sm.platformId}
+            platform={sm.platform}
+            platformId={sm.platformId}
+            subscriberCount={sm.subscriberCount}
+            isVerified={sm.isVerified}
           />
         ))}
+        {(data.socialMedia || []).length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No social media linked
+          </p>
+        )}
       </motion.div>
     </TabsContent>
   </Tabs>
@@ -960,14 +1055,16 @@ const VolunteerDonorInfluencerDetails = ({
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        {Object.entries(data.socialMedia || {}).map(([platform, handle]) => (
+        {(data.socialMedia || []).map((sm: any, idx: number) => (
           <SocialBadge
-            key={platform}
-            platform={platform}
-            handle={handle as string}
+            key={sm.platform + sm.platformId}
+            platform={sm.platform}
+            platformId={sm.platformId}
+            subscriberCount={sm.subscriberCount}
+            isVerified={sm.isVerified}
           />
         ))}
-        {Object.keys(data.socialMedia || {}).length === 0 && (
+        {(data.socialMedia || []).length === 0 && (
           <p className="text-sm text-muted-foreground">
             No social media linked
           </p>
@@ -1111,13 +1208,20 @@ const VendorDetails = ({ data }: { data: Record<string, any> }) => (
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        {Object.entries(data.socialMedia || {}).map(([platform, handle]) => (
+        {(data.socialMedia || []).map((sm: any, idx: number) => (
           <SocialBadge
-            key={platform}
-            platform={platform}
-            handle={handle as string}
+            key={sm.platform + sm.platformId}
+            platform={sm.platform}
+            platformId={sm.platformId}
+            subscriberCount={sm.subscriberCount}
+            isVerified={sm.isVerified}
           />
         ))}
+        {(data.socialMedia || []).length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No social media linked
+          </p>
+        )}
       </motion.div>
     </TabsContent>
   </Tabs>
@@ -1127,7 +1231,7 @@ const VendorDetails = ({ data }: { data: Record<string, any> }) => (
 
 const Profile = () => {
   // Simulate backend user object
-  const user = {
+  const Dummyuser = {
     name: "Arjun Patel",
     email: "arjun.patel@gmail.com",
     mobile: "+91 99887 76655",
@@ -1139,14 +1243,68 @@ const Profile = () => {
     followers: 340,
     posts: 45,
     website: "",
-    roles: ["vendor"], // Example roles array (now as separate strings)
+    roles: ["gaushala"],
     // Role-specific data
     volunteer: mockProfiles.volunteer,
     donor: mockProfiles.donor,
     influencer: mockProfiles.influencer,
   };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState(Dummyuser);
+  const { userId, role } = useAuthStore();
 
-  // For demo, you can switch roles array or add more role-specific data
+  async function getUserProfile() {
+    setLoading(true);
+    setError(null);
+    try {
+      if (role === "gaushala") {
+        const gaushalaProfileData = await getGaushalaProfile(userId);
+        console.log({ gaushalaProfileData: gaushalaProfileData.data.gaushala });
+        setUser(gaushalaProfileData.data.gaushala);
+      }
+      if (role === "ngo") {
+        const ngoProfileData = await getNGOProfile(userId);
+        console.log({ ngoProfileData });
+      }
+      if (["volunteer", "donor", "influencer"].includes(role)) {
+        const userProfileData = await getVolunteerDonorInfluencerProfile(
+          userId,
+          role as "volunteer" | "donor" | "influencer",
+        );
+        console.log({ userProfileData });
+      }
+      if (role === "vendor") {
+        const vendorProfileData = await getVendorProfile(userId);
+        console.log({ vendorProfileData });
+      }
+    } catch (e) {
+      setError("Failed to load user profile. Please try again later.");
+      setLoading(false);
+      return;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getUserProfile();
+  }, [userId]);
+
+  if (loading) return <ProfileSkeleton />;
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl shadow-card text-center">
+          <h2 className="text-xl font-bold mb-2">
+            Something went wrong while loading the Profile Page
+          </h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+
+  console.log(user);
 
   // Common profile header
   return (
@@ -1218,25 +1376,6 @@ const Profile = () => {
                   )}
                 </div>
               </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-                className="flex gap-6 mt-5 pt-4 border-t border-border"
-              >
-                <div className="text-center">
-                  <p className="text-lg font-heading font-bold text-foreground">
-                    {user.followers || 0}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Followers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-heading font-bold text-foreground">
-                    {user.posts || 0}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Posts</p>
-                </div>
-              </motion.div>
             </div>
           </div>
         </motion.div>
@@ -1250,13 +1389,9 @@ const Profile = () => {
         >
           {/* Gaushala, NGO, Vendor are mutually exclusive */}
           {/* If user has one of these roles, render their section */}
-          {user.roles.includes("gaushala") && (
-            <GaushalaDetails data={mockProfiles.gaushala} />
-          )}
-          {user.roles.includes("ngo") && <NGODetails data={mockProfiles.ngo} />}
-          {user.roles.includes("vendor") && (
-            <VendorDetails data={mockProfiles.vendor} />
-          )}
+          {user.roles.includes("gaushala") && <GaushalaDetails data={user} />}
+          {user.roles.includes("ngo") && <NGODetails data={user} />}
+          {user.roles.includes("vendor") && <VendorDetails data={user} />}
 
           {/* Render unified Volunteer/Donor/Influencer section if user has any of those roles */}
           {user.roles.some((r) =>
