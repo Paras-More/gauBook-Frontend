@@ -205,23 +205,23 @@ const GaushalaNGOForm = () => {
   };
 
   const handleNext = () => {
-    if (stepIndex === 0) {
-      if (!validateStep1()) {
-        return;
-      }
-    } else if (stepIndex === 1) {
-      if (!validateStep2()) {
-        return;
-      }
-    } else if (stepIndex === 2) {
-      if (!validateStep3()) {
-        return;
-      }
-    } else if (stepIndex === 3) {
-      if (!validateStep4()) {
-        return;
-      }
-    }
+    // if (stepIndex === 0) {
+    //   if (!validateStep1()) {
+    //     return;
+    //   }
+    // } else if (stepIndex === 1) {
+    //   if (!validateStep2()) {
+    //     return;
+    //   }
+    // } else if (stepIndex === 2) {
+    //   if (!validateStep3()) {
+    //     return;
+    //   }
+    // } else if (stepIndex === 3) {
+    //   if (!validateStep4()) {
+    //     return;
+    //   }
+    // }
     updateFormData(localData);
     if (stepIndex < steps.length - 1) {
       setCurrentStep(currentStep + 1);
