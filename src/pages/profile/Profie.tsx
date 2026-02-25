@@ -666,7 +666,7 @@ const NGODetails = ({ data }: { data: Record<string, any> }) => (
   <Tabs defaultValue="overview" className="w-full">
     <TabsList className="w-full justify-start bg-secondary/50 mb-6">
       <TabsTrigger value="overview">Overview</TabsTrigger>
-      <TabsTrigger value="impact">Impact</TabsTrigger>
+      {/* <TabsTrigger value="impact">Impact</TabsTrigger> */}
       <TabsTrigger value="social">Social</TabsTrigger>
     </TabsList>
     <TabsContent value="overview">
@@ -1079,7 +1079,7 @@ const VendorDetails = ({ data }: { data: Record<string, any> }) => (
     <TabsList className="w-full justify-start bg-secondary/50 mb-6">
       <TabsTrigger value="overview">Overview</TabsTrigger>
       <TabsTrigger value="products">Products</TabsTrigger>
-      <TabsTrigger value="performance">Performance</TabsTrigger>
+      {/* <TabsTrigger value="performance">Performance</TabsTrigger> */}
       <TabsTrigger value="social">Social</TabsTrigger>
     </TabsList>
     <TabsContent value="overview">
@@ -1265,7 +1265,8 @@ const Profile = () => {
       }
       if (role === "ngo") {
         const ngoProfileData = await getNGOProfile(userId);
-        console.log({ ngoProfileData });
+        setUser(ngoProfileData.data.ngo);
+        console.log({ ngoProfileData: ngoProfileData.data.ngo });
       }
       if (["volunteer", "donor", "influencer"].includes(role)) {
         const userProfileData = await getVolunteerDonorInfluencerProfile(
@@ -1276,6 +1277,7 @@ const Profile = () => {
       }
       if (role === "vendor") {
         const vendorProfileData = await getVendorProfile(userId);
+        setUser(vendorProfileData.data.vendor);
         console.log({ vendorProfileData });
       }
     } catch (e) {
@@ -1402,7 +1404,7 @@ const Profile = () => {
                 Volunteer / Donor / Influencer
               </h2>
               <VolunteerDonorInfluencerDetails
-                data={user.volunteer}
+                data={user}
                 role={"volunteer" as UserRole}
               />
             </div>

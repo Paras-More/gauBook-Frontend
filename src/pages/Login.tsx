@@ -83,8 +83,6 @@ export default function Login() {
         // Call user login API
       } else if (userType === "vendor") {
         const response = await loginVendor(payload);
-        console.log(response);
-
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
           setUser(
@@ -92,7 +90,7 @@ export default function Login() {
             response.data.name,
             response.data.role || "vendor",
           );
-          navigate("/directory");
+          navigate("/profile");
         }
         // Call vendor login API
       } else if (userType === "gaushala") {
@@ -103,7 +101,6 @@ export default function Login() {
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
           console.log("response.data.id", response.data.id);
-
           setUser(
             response.data.id,
             response.data.name,
@@ -117,13 +114,12 @@ export default function Login() {
         console.log(response);
 
         if (response.success) {
-          showSuccessToast("Login successful! 🎉");
           setUser(
             response.data.id,
             response.data.name,
             response.data.role || "ngo",
           );
-          navigate("/directory");
+          navigate("/profile");
         }
       }
     } catch (error: any) {
