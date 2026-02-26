@@ -20,6 +20,7 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { registerGaushala, registerNgo } from "@/axios/Registrations";
 import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
+import { useNavigate } from "react-router-dom";
 
 const gaushalaNgoSteps = [
   "Basic Info",
@@ -38,6 +39,7 @@ const GaushalaNGOForm = () => {
     setCurrentStep,
     resetForm,
   } = useRegistrationStore();
+  const navigate = useNavigate();
   const [localData, setLocalData] = useState<Record<string, any>>(formData);
   // File state: store selected files for each field
   const [fileState, setFileState] = useState<{
@@ -48,6 +50,7 @@ const GaushalaNGOForm = () => {
   }>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [passwordError, setPasswordError] = useState<string>("");
+  const { setSelectedRole } = useRegistrationStore();
   const isNGO = selectedRole === "ngo";
   const steps = isNGO
     ? ["Basic Info", "Documents", "Operations", "Review"]
@@ -352,8 +355,12 @@ const GaushalaNGOForm = () => {
 
       if (!isNGO) {
         await registerGaushala(formDataToSend);
+        setSelectedRole("gaushala");
+        navigate("/login");
       } else {
         await registerNgo(formDataToSend);
+        setSelectedRole("ngo");
+        navigate("/login");
       }
       showSuccessToast(
         `${roleLabels[selectedRole!]} registration submitted successfully! 🎉`,

@@ -70,11 +70,13 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     set({ selectedRole: role, currentStep: 1, formData: {} }),
   setSelectedRoles: (roles) => set({ selectedRoles: roles }),
   toggleRole: (role) =>
-    set((state) => ({
-      selectedRoles: state.selectedRoles.includes(role)
-        ? state.selectedRoles.filter((r) => r !== role)
-        : [...state.selectedRoles, role],
-    })),
+    set((state) => {
+      return {
+        selectedRoles: state.selectedRoles.includes(role)
+          ? state.selectedRoles.filter((r) => r !== role)
+          : [...state.selectedRoles, role],
+      };
+    }),
   setCurrentStep: (step) => set({ currentStep: step }),
   updateFormData: (data) =>
     set((state) => ({ formData: { ...state.formData, ...data } })),

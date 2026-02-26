@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { roleIcons, roleLabels } from "@/stores/registrationStore";
+import {
+  roleIcons,
+  roleLabels,
+  useRegistrationStore,
+} from "@/stores/registrationStore";
 import { Mail, Lock, Phone, ArrowLeft } from "lucide-react";
 import { loginGaushala, loginNgo, loginUser, loginVendor } from "@/axios/Login";
 import { showErrorToast, showSuccessToast } from "@/lib/toasts/customToasts";
@@ -36,11 +40,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { selectedRole } = useRegistrationStore();
   const user = ["volunteer", "donor", "influencer"];
   useEffect(() => {
     const rememberedType = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (rememberedType) {
-      setUserType(rememberedType);
+    if (selectedRole || rememberedType) {
+      setUserType(rememberedType || selectedRole);
       setRemember(true);
     }
   }, []);
@@ -70,7 +75,6 @@ export default function Login() {
       if (user.includes(userType)) {
         const response = await loginUser(payload);
         console.log(response);
-
         if (response.success) {
           showSuccessToast("Login successful! 🎉");
           setUser(
@@ -78,7 +82,7 @@ export default function Login() {
             response.data.name,
             response.data.role || "user",
           );
-          navigate("/directory");
+          navigate("/profile");
         }
         // Call user login API
       } else if (userType === "vendor") {
@@ -232,7 +236,7 @@ export default function Login() {
                         required
                       />
                       <span className="text-3xl mb-2">{type.icon}</span>
-                      {type.label}
+                      {`${type.label === "Gaushala" ? "Gaushalas" : `Gau ${type.label}`}`}
                     </motion.label>
                   ))}
                 </div>

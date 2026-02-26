@@ -1,10 +1,24 @@
-import { motion } from 'framer-motion';
-import { UserRole, roleLabels, roleDescriptions, roleIcons, useRegistrationStore } from '@/stores/registrationStore';
+import { motion } from "framer-motion";
+import {
+  UserRole,
+  roleLabels,
+  roleDescriptions,
+  roleIcons,
+  useRegistrationStore,
+} from "@/stores/registrationStore";
 
-const roles: UserRole[] = ['gaushala', 'ngo', 'volunteer', 'donor', 'influencer', 'vendor'];
+const roles: UserRole[] = [
+  "gaushala",
+  "ngo",
+  "volunteer",
+  "donor",
+  "influencer",
+  "vendor",
+];
 
 const RoleSelection = () => {
   const setSelectedRole = useRegistrationStore((s) => s.setSelectedRole);
+  const setSelectedRoles = useRegistrationStore((s) => s.setSelectedRoles);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -14,7 +28,8 @@ const RoleSelection = () => {
         className="text-center mb-10"
       >
         <h1 className="text-3xl lg:text-4xl font-heading font-bold text-foreground mb-3">
-          Join the <span className="text-gradient-saffron">GauBook</span> Community
+          Join the <span className="text-gradient-saffron">GauBook</span>{" "}
+          Community
         </h1>
         <p className="text-muted-foreground text-lg max-w-xl mx-auto">
           Select your role to get started with registration
@@ -28,12 +43,21 @@ const RoleSelection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08 }}
-            onClick={() => setSelectedRole(role)}
+            onClick={() => {
+              setSelectedRole(role);
+              const currentRoles =
+                useRegistrationStore.getState().selectedRoles;
+              setSelectedRoles(
+                currentRoles.includes(role)
+                  ? currentRoles
+                  : [...currentRoles, role],
+              );
+            }}
             className="group relative bg-card border border-border rounded-xl p-6 text-left hover:border-primary/50 hover:shadow-warm transition-all duration-300 cursor-pointer"
           >
             <div className="text-4xl mb-3">{roleIcons[role]}</div>
             <h3 className="text-lg font-heading font-semibold text-foreground group-hover:text-primary transition-colors">
-              {roleLabels[role]}
+              {`${roleLabels[role] === "Gaushala" ? "Gaushalas" : `Gau ${roleLabels[role]}`}`}
             </h3>
             <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
               {roleDescriptions[role]}

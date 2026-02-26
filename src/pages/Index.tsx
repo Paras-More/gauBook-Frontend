@@ -124,7 +124,7 @@ const Index = () => {
               >
                 <span className="text-3xl">{role.emoji}</span>
                 <h3 className="font-heading font-semibold text-foreground mt-2">
-                  {role.name}
+                  {`${role.name === "Gaushala" ? "Gaushalas" : `Gau ${role.name}`}`}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Target: {role.count}

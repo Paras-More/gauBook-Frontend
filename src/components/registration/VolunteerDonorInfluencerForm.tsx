@@ -133,8 +133,12 @@ const VolunteerDonorInfluencerForm = () => {
     formDataToSend.append("hasTransport", localData.hasTransport || false);
     formDataToSend.append("bio", localData.bio || "");
     // Add selectedRole to roles if not already in selectedRoles
+    console.log("selectedRoles", selectedRoles);
+
     const rolesArray =
       selectedRoles.length > 0 ? selectedRoles : [selectedRole];
+    console.log("rolesArray", rolesArray);
+
     formDataToSend.append("roles", JSON.stringify(rolesArray));
     const {
       enabledPlatforms = [],
@@ -290,30 +294,28 @@ const VolunteerDonorInfluencerForm = () => {
                   Additional Roles (Select multiple if interested)
                 </Label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {["volunteer", "donor", "influencer"].map((role) => (
-                    <div
-                      key={role}
-                      onClick={() => toggleRole(role as any)}
-                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-2 ${
-                        selectedRole?.toLowerCase() === role ||
-                        selectedRoles.includes(role as any)
-                          ? "border-accent bg-accent/10"
-                          : "border-gray-300 hover:border-accent/50"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={
-                          selectedRole?.toLowerCase() === role ||
+                  {["volunteer", "donor", "influencer"].map((role) => {
+                    return (
+                      <div
+                        key={role}
+                        onClick={() => toggleRole(role as any)}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-2 ${
                           selectedRoles.includes(role as any)
-                        }
-                        onCheckedChange={() => toggleRole(role as any)}
-                        className="cursor-pointer"
-                      />
-                      <Label className="text-sm font-medium cursor-pointer capitalize">
-                        {roleLabels[role as any]}
-                      </Label>
-                    </div>
-                  ))}
+                            ? "border-accent bg-accent/10"
+                            : "border-gray-300 hover:border-accent/50"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedRoles.includes(role as any)}
+                          onCheckedChange={() => toggleRole(role as any)}
+                          className="cursor-pointer"
+                        />
+                        <Label className="text-sm font-medium cursor-pointer capitalize">
+                          {roleLabels[role as any]}
+                        </Label>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

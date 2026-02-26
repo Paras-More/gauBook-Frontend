@@ -41,20 +41,12 @@ const ProfileSkeleton = () => (
   </div>
 );
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSearchParams } from "react-router-dom";
-import Header from "@/components/layout/Header";
+import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  UserRole,
-  roleLabels,
-  roleIcons,
-  useRegistrationStore,
-} from "@/stores/registrationStore";
+import { UserRole } from "@/stores/registrationStore";
 import {
   MapPin,
   Phone,
@@ -794,7 +786,7 @@ const VolunteerDonorInfluencerDetails = ({
     <TabsList className="w-full justify-start bg-secondary/50 mb-6">
       <TabsTrigger value="overview">Overview</TabsTrigger>
       <TabsTrigger value="skills">Skills</TabsTrigger>
-      <TabsTrigger value="activity">Activity</TabsTrigger>
+      {/* <TabsTrigger value="activity">Activity</TabsTrigger> */}
       <TabsTrigger value="availability">Availability</TabsTrigger>
       <TabsTrigger value="social">Social</TabsTrigger>
     </TabsList>
@@ -1268,12 +1260,12 @@ const Profile = () => {
         setUser(ngoProfileData.data.ngo);
         console.log({ ngoProfileData: ngoProfileData.data.ngo });
       }
-      if (["volunteer", "donor", "influencer"].includes(role)) {
+      if (["volunteer", "donor", "influencer", "user"].includes(role)) {
         const userProfileData = await getVolunteerDonorInfluencerProfile(
           userId,
           role as "volunteer" | "donor" | "influencer",
         );
-        console.log({ userProfileData });
+        setUser(userProfileData.data);
       }
       if (role === "vendor") {
         const vendorProfileData = await getVendorProfile(userId);
@@ -1336,7 +1328,7 @@ const Profile = () => {
                     </AvatarFallback>
                   </Avatar>
                 </motion.div>
-                <div className="flex-1 pt-2 sm:pt-0 sm:pb-1">
+                <div className="flex-1 pt-2 sm:pt-0 sm:pb-1 ">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <h1 className="text-2xl lg:text-3xl font-heading font-bold text-foreground">
                       {user.name}
@@ -1401,7 +1393,9 @@ const Profile = () => {
           ) && (
             <div className="mb-8">
               <h2 className="text-xl font-heading font-bold mb-2 text-foreground">
-                Volunteer / Donor / Influencer
+                {user.roles
+                  ?.map((r: string) => r.charAt(0).toUpperCase() + r.slice(1))
+                  .join(" / ")}
               </h2>
               <VolunteerDonorInfluencerDetails
                 data={user}
