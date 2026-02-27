@@ -27,12 +27,12 @@ const Header = () => {
           >
             Home
           </Link>
-          <Link
+          {/* <Link
             to="/directory"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Directory
-          </Link>
+          </Link> */}
           <Link
             to="/register"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
