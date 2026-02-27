@@ -8,10 +8,17 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl">🐄</span>
+          {/* <span className="text-2xl">🐄</span>
           <span className="text-2xl font-heading font-bold text-gradient-saffron">
             GauBook
-          </span>
+          </span> */}
+          <img
+            src={"/assests/gauBookLogoDark.png"}
+            alt="GauBook Logo"
+            className="h-full max-h-12 w-auto object-contain"
+            style={{ display: "block" }}
+            aria-hidden="true"
+          />
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           <Link
