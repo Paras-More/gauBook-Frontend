@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import heroBg from "@/assets/hero-bg.jpg";
 import { Users, Shield, Heart, MapPin, Star, ArrowRight } from "lucide-react";
+import Logo from "@/components/common/Logo";
 
 const features = [
   {
@@ -84,12 +85,12 @@ const Index = () => {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Button
+              {/* <Button
                 size="lg"
                 className="bg-card text-foreground hover:bg-card/90 font-semibold text-base px-8 shadow-warm"
               >
                 Explore Directory
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>
@@ -199,10 +200,12 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8 bg-card">
         <div className="container px-4 text-center">
-          <span className="text-2xl">🐄</span>
-          <p className="font-heading font-bold text-gradient-saffron text-lg mt-1">
-            GauBook
-          </p>
+          <Logo
+            className="h-full max-h-12 w-auto object-contain mx-auto"
+            darkSrc="/assests/gauBookLogoDark.png"
+            lightSrc="/assests/gauBookLogoDark.png"
+            alt="GauBook Logo"
+          />
           <p className="text-xs text-muted-foreground mt-2">
             India's Largest Gau Community • Connect • Empower • Support
           </p>

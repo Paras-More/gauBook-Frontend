@@ -2,22 +2,18 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Logo from "@/components/common/Logo";
 
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          {/* <span className="text-2xl">🐄</span>
-          <span className="text-2xl font-heading font-bold text-gradient-saffron">
-            GauBook
-          </span> */}
-          <img
-            src={"/assests/gauBookLogoDark.png"}
-            alt="GauBook Logo"
+          <Logo
             className="h-full max-h-12 w-auto object-contain"
-            style={{ display: "block" }}
-            aria-hidden="true"
+            darkSrc="/assests/gauBookLogoDark.png"
+            lightSrc="/assests/gauBookLogoLight.png"
+            alt="GauBook Logo"
           />
         </Link>
         <nav className="hidden md:flex items-center gap-6">

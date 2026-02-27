@@ -13,7 +13,7 @@ const Register = () => {
   const formType = selectedRole ? getRoleFormType(selectedRole) : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[calc(100vh-4rem)] bg-background">
       <main className="container py-8 lg:py-12 px-4">
         {!selectedRole && <RoleSelection />}
         {formType === "type1" && <GaushalaNGOForm />}

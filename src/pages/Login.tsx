@@ -153,18 +153,18 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-yellow-50 to-pink-100 dark:from-background dark:via-background dark:to-background overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-orange-50 via-yellow-50 to-pink-100 dark:from-background dark:via-background dark:to-background">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="flex w-full max-w-4xl h-[90vh] bg-card rounded-2xl shadow-2xl overflow-hidden"
+        className="flex w-full max-w-4xl min-h-[80vh] bg-card rounded-2xl shadow-2xl overflow-hidden"
       >
         {/* Left: Illustration or image */}
         <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-orange-100 via-yellow-100 to-pink-200 dark:from-muted dark:via-muted dark:to-muted px-10 py-12 w-1/2 relative">
           <img
-            src="/placeholder.svg"
-            alt="Login Illustration"
+            src="/assests/gauBookIcon.png"
+            alt="Gau Icon"
             className="w-56 h-56 object-contain mb-6 drop-shadow-xl animate-float"
           />
           <motion.h3
