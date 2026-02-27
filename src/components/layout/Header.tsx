@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Logo from "@/components/common/Logo";
+import { useState } from "react";
 
 const Header = () => {
   return (
@@ -40,15 +41,36 @@ const Header = () => {
           {(() => {
             const userId = useAuthStore((state) => state.userId);
             const userName = useAuthStore((state) => state.userName);
+            const clearUser = useAuthStore((state) => state.clearUser);
+            const [showMenu, setShowMenu] = useState(false);
             if (userId) {
               return (
-                <Link to="/profile">
-                  <Avatar className="w-8 h-8 border border-border">
-                    <AvatarFallback className="bg-gradient-to-br from-primary/80 to-secondary/80 text-primary-foreground font-bold">
-                      {userName?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu((v) => !v)}
+                    className="focus:outline-none"
+                  >
+                    <Avatar className="w-8 h-8 border border-border">
+                      <AvatarFallback className="bg-gradient-to-br from-primary/80 to-secondary/80 text-primary-foreground font-bold">
+                        {userName?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 mt-2 w-32 bg-card border border-border rounded-lg shadow-lg z-50">
+                      <button
+                        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-t-lg"
+                        onClick={() => {
+                          clearUser();
+                          setShowMenu(false);
+                          window.location.href = "/login";
+                        }}
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               );
             }
             return (
